@@ -1,0 +1,18 @@
+Some ideas of things to implement
+- Using gravity or radiation, we can implement travel
+- Using a queue, we can implement quarantines of different lengths for travelers
+    - How does quarantine work differently from cutting off the travel 
+    - Possibly think about not letting sick people travel 
+        - Does one method do better at maintaining a regular level of commuting/travel
+- Possibly have a differentiation between commuter travel and pleasure travel 
+- Thinking about commuting will require some modifications of the network 
+    - May have to have a day and night time-step, this would have positive and negative commuting (boolean)
+    - Tourism obviously would be considered differently
+
+- Look at the shared paper, see what we want to have for the gravity model
+- The radiation model may just be a different implementation that we can also use
+
+
+- Latin hypercube for parameters
+
+- Should I do relative percentage of population?
