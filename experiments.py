@@ -224,7 +224,7 @@ def test_two_nodes():
 
 if __name__ == "__main__":
     # test_two_nodes()
-    # test_network()
+    test_network()
     test_i_over_time()
 
 """

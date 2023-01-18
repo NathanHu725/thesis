@@ -1,4 +1,6 @@
 from connections import *
+import numpy as np
+from numpy.random import binomial
 
 def get_start_nodes():
     return ['Chicago']
@@ -20,11 +22,13 @@ def get_distances():
 
 def constant_threshold(infected, total_pop):
     threshold_pop = 300000
-    return infected > threshold_pop
+    tested_positive = binomial(infected, testing_vars['positive_to_positive'])
+    return tested_positive > threshold_pop
 
 def percent_threshold(infected, total_pop):
-    threshold = .02
-    return threshold * total_pop < infected
+    threshold = .1
+    tested_positive = binomial(infected, testing_vars['positive_to_positive'])
+    return threshold * total_pop < tested_positive
 
 cities_extended = [('Milwaukee', 570000), ('Rockford', 147000), ('Gary', 70000), ('Chicago', 2670000), ('Minneapolis', 425000), ('St. Paul', 307000), ('Madison', 270000), ('Indianapolis', 882000), ('Fort Wayne', 265974), ('Des Moines', 212031), ('Aurora', 179266), ('Grand Rapids', 197416), ('Overland Park', 197106), ('Akron', 189347), ('Sioux Falls', 196528), ('Springfield MO', 169724), ('Kansas City MO', 508394), ('Joliet', 150371), ('Naperville', 149104), ('Dayton', 137571), ('Warren', 138130), ('Olathe', 143014), ('Sterling Heights', 131996), ('Cedar Rapids', 130330), ('Topeka', 127139), ('Fargo', 125804), ('Rochester', 124599), ('Evansville', 119806), ('Ann Arbor', 119303), ('Columbia', 118620), ('Independence', 117369), ('Springfield IL', 116313), ('Peoria', 115424), ('Lansing', 115222), ('Elgin', 112628), ('Green Bay', 104796), ('Toledo', 268508), ('Lincoln', 293000), ('St. Louis', 301000), ('Columbus', 905000), ('Detroit', 639000), ('Kansas City KS', 477000), ('Omaha', 463000), ('Wichita', 397000), ('Cleveland', 373000), ('Cincinnati', 309000)]
 cities = [('Milwaukee', 570000), ('Rockford', 147000), ('Gary', 70000), ('Chicago', 2670000), ('Minneapolis', 425000), ('St. Paul', 307000), ('Madison', 270000), ('Indianapolis', 882000)]
@@ -92,19 +96,25 @@ distances_extended = [
     [392, 384, 264, 296, 704, 694, 443, 112, 179, 585, 329, 356, 599, 232, 850, 563, 588, 303, 317, 54, 280, 609, 284, 498, 650, 939, 644, 221, 249, 465, 581, 321, 321, 314, 331, 506, 202, 774, 349, 106, 263, 592, 719, 782, 249, 0]
 ]
 
-dvars = {'beta': 2/5, 
-        'birth_rate': 1 / (55 * 365),
-        'natural_death_rate': 1 / (75 * 365),
-        'disease_death_rate': .001,
-        'incubation_rate': 1/3,
-        'recovery_rate': 1/10,
-        'lost_immunity_rate': 1/(365),
-        'threshold_function': constant_threshold
-        }
+dvars = {
+    'beta': 2/5, 
+    'birth_rate': 1 / (55 * 365),
+    'natural_death_rate': 1 / (75 * 365),
+    'disease_death_rate': .001,
+    'incubation_rate': 1/3,
+    'recovery_rate': 1/20,
+    'lost_immunity_rate': 1/(365),
+    'threshold_function': percent_threshold
+}
 
 time_vars = {
     'time_step': .5,
     'total_time': 400
+}
+
+testing_vars = {
+    'positive_to_positive': .78,
+    'negative_to_positive': .02
 }
 
 travel_vars_grav = {

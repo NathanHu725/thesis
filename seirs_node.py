@@ -6,9 +6,9 @@ class SEIRSNode(DiseaseNode):
     def __init__(self, total_population, disease_vars, delta_t = 1, name = '', start_with_disease=False):
         self.t = 0
         self.delta_t = delta_t
-        self.S = total_population - 100
+        self.S = total_population - 1000 if start_with_disease else total_population
         self.E = 0
-        self.I = 10000 if start_with_disease else 0
+        self.I = 1000 if start_with_disease else 0
         self.R = 0
 
         self.total_I = 0
@@ -47,15 +47,15 @@ class SEIRSNode(DiseaseNode):
     def increment(self):
         self.t += self.delta_t
         try:
-            dN_SE = np.random.binomial(self.S, 1 - np.exp(-1 * self.beta * self.I / (self.S + self.I + self.E + self.R) * self.delta_t))
-            dN_EI = np.random.binomial(self.E, 1 - np.exp(-1 * self.sigma * self.delta_t))
-            dN_IR = np.random.binomial(self.I, 1 - np.exp(-1 * self.gamma * self.delta_t))
-            dN_RS = np.random.binomial(self.R, 1 - np.exp(-1 * self.omega * self.delta_t))
-            dN_NS = np.random.binomial(self.S, 1 - np.exp(-1 * self.mu * self.delta_t))
-            dN_SN = np.random.binomial(self.S, 1 - np.exp(-1 * self.mu_2 * self.delta_t))
-            dN_EN = np.random.binomial(self.E, 1 - np.exp(-1 * self.mu_2 * self.delta_t))
-            dN_IN = np.random.binomial(self.I, 1 - np.exp(-1 * (self.mu_2 + self.v) * self.delta_t))
-            dN_RN = np.random.binomial(self.R, 1 - np.exp(-1 * self.mu_2 * self.delta_t))
+            dN_SE = binomial(self.S, 1 - np.exp(-1 * self.beta * self.I / (self.S + self.I + self.E + self.R) * self.delta_t))
+            dN_EI = binomial(self.E, 1 - np.exp(-1 * self.sigma * self.delta_t))
+            dN_IR = binomial(self.I, 1 - np.exp(-1 * self.gamma * self.delta_t))
+            dN_RS = binomial(self.R, 1 - np.exp(-1 * self.omega * self.delta_t))
+            dN_NS = binomial(self.S, 1 - np.exp(-1 * self.mu * self.delta_t))
+            dN_SN = binomial(self.S, 1 - np.exp(-1 * self.mu_2 * self.delta_t))
+            dN_EN = binomial(self.E, 1 - np.exp(-1 * self.mu_2 * self.delta_t))
+            dN_IN = binomial(self.I, 1 - np.exp(-1 * (self.mu_2 + self.v) * self.delta_t))
+            dN_RN = binomial(self.R, 1 - np.exp(-1 * self.mu_2 * self.delta_t))
         except:
             breakpoint()
 
