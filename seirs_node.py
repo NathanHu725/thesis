@@ -46,18 +46,15 @@ class SEIRSNode(DiseaseNode):
     # Returns Suscetible, Exposed, Infected, Recovered at each timestamp
     def increment(self):
         self.t += self.delta_t
-        try:
-            dN_SE = binomial(self.S, 1 - np.exp(-1 * self.beta * self.I / (self.S + self.I + self.E + self.R) * self.delta_t))
-            dN_EI = binomial(self.E, 1 - np.exp(-1 * self.sigma * self.delta_t))
-            dN_IR = binomial(self.I, 1 - np.exp(-1 * self.gamma * self.delta_t))
-            dN_RS = binomial(self.R, 1 - np.exp(-1 * self.omega * self.delta_t))
-            dN_NS = binomial(self.S, 1 - np.exp(-1 * self.mu * self.delta_t))
-            dN_SN = binomial(self.S, 1 - np.exp(-1 * self.mu_2 * self.delta_t))
-            dN_EN = binomial(self.E, 1 - np.exp(-1 * self.mu_2 * self.delta_t))
-            dN_IN = binomial(self.I, 1 - np.exp(-1 * (self.mu_2 + self.v) * self.delta_t))
-            dN_RN = binomial(self.R, 1 - np.exp(-1 * self.mu_2 * self.delta_t))
-        except:
-            breakpoint()
+        dN_SE = binomial(self.S, 1 - np.exp(-1 * self.beta * self.I / (self.S + self.I + self.E + self.R) * self.delta_t))
+        dN_EI = binomial(self.E, 1 - np.exp(-1 * self.sigma * self.delta_t))
+        dN_IR = binomial(self.I, 1 - np.exp(-1 * self.gamma * self.delta_t))
+        dN_RS = binomial(self.R, 1 - np.exp(-1 * self.omega * self.delta_t))
+        dN_NS = binomial(self.S, 1 - np.exp(-1 * self.mu * self.delta_t))
+        dN_SN = binomial(self.S, 1 - np.exp(-1 * self.mu_2 * self.delta_t))
+        dN_EN = binomial(self.E, 1 - np.exp(-1 * self.mu_2 * self.delta_t))
+        dN_IN = binomial(self.I, 1 - np.exp(-1 * (self.mu_2 + self.v) * self.delta_t))
+        dN_RN = binomial(self.R, 1 - np.exp(-1 * self.mu_2 * self.delta_t))
 
         # Change in susceptible
         self.S += -dN_SE + dN_RS + dN_NS - dN_SN
