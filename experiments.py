@@ -8,6 +8,25 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 
+def test_total_i_over_time():
+    net = DiseaseNetwork(get_cities(), get_distances(), SEIRSNode, get_dvars(), get_time_vars(), get_travel_vars())
+    tracker, _, time_tracker, _ = net.simulate()
+    populations = pd.DataFrame(tracker[list(tracker)[0]])
+    for city in list(tracker)[1:]:
+        populations += pd.DataFrame(tracker[city])
+
+    S = plt.plot(time_tracker, populations.iloc[:,0], 'r')
+    E = plt.plot(time_tracker, populations.iloc[:,1], 'y')
+    I = plt.plot(time_tracker, populations.iloc[:,2], 'b')
+    R = plt.plot(time_tracker, populations.iloc[:,3], 'g')
+    cS = plt.plot(time_tracker, populations.iloc[:,4], 'g--')
+    plt.xlabel('Time')
+    plt.ylabel('Disease Populations')
+    plt.title('Total Populations over Time Starting in Joliet')
+    plt.legend(['S Population', 'E Population', 'I Population', 'R Population', 'Total Population'])
+    
+    plt.show()
+
 def test_i_over_time():
     net = DiseaseNetwork(get_cities(), get_distances(), SEIRSNode, get_dvars(), get_time_vars(), get_travel_vars())
     tracker, _, time_tracker, _ = net.simulate()
@@ -68,8 +87,9 @@ def test_single_node():
 if __name__ == "__main__":
     # test_two_nodes()
     # test_single_node()
-    # test_network()
-    test_i_over_time()
+    test_network()
+    # test_i_over_time()
+    # test_total_i_over_time()
 
 """
 Think about questions to ask
@@ -96,6 +116,8 @@ For quarantine period, think about making sure not all people come out recovered
 
 Same set of parameters, run it once for each city starting. Compare how city size and distance from chicago or distance from center of network (think about summing all 
 distances, connectedness to network)
+
+Can we see how long the infected period lasts? Will have to define this as passing .5% threshold or 1% threshold or maybe think about wavelet transform (paper that was sent to me recently)
 
 Run averages over a number of trials
 """
