@@ -7,19 +7,28 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
+from tqdm import tqdm
+from collections import defaultdict
 
-def test_total_i_over_time():
-    net = DiseaseNetwork(get_cities(), get_distances(), SEIRSNode, get_dvars(), get_time_vars(), get_travel_vars())
-    tracker, _, time_tracker, _ = net.simulate()
-    populations = pd.DataFrame(tracker[list(tracker)[0]])
-    for city in list(tracker)[1:]:
-        populations += pd.DataFrame(tracker[city])
+def test_total_i_over_time(trials=10):
+    avg_populations = pd.DataFrame([])
+    for i in tqdm(range(trials), desc="Trials"):
+        net = DiseaseNetwork(get_cities(), get_distances(), SEIRSNode, get_dvars(), get_time_vars(), get_travel_vars())
+        tracker, _, time_tracker, _ = net.simulate()
+        populations = pd.DataFrame(tracker[list(tracker)[0]])
+        for city in list(tracker)[1:]:
+            populations += pd.DataFrame(tracker[city])
 
-    S = plt.plot(time_tracker, populations.iloc[:,0], 'r')
-    E = plt.plot(time_tracker, populations.iloc[:,1], 'y')
-    I = plt.plot(time_tracker, populations.iloc[:,2], 'b')
-    R = plt.plot(time_tracker, populations.iloc[:,3], 'g')
-    cS = plt.plot(time_tracker, populations.iloc[:,4], 'g--')
+        if avg_populations.empty:
+            avg_populations = populations 
+        else:
+            avg_populations += populations
+
+    S = plt.plot(time_tracker, avg_populations.iloc[:,0], 'r')
+    E = plt.plot(time_tracker, avg_populations.iloc[:,1], 'y')
+    I = plt.plot(time_tracker, avg_populations.iloc[:,2], 'b')
+    R = plt.plot(time_tracker, avg_populations.iloc[:,3], 'g')
+    cS = plt.plot(time_tracker, avg_populations.iloc[:,4], 'g--')
     plt.xlabel('Time')
     plt.ylabel('Disease Populations')
     plt.title('Total Populations over Time Starting in Joliet')
@@ -27,32 +36,58 @@ def test_total_i_over_time():
     
     plt.show()
 
-def test_i_over_time():
-    net = DiseaseNetwork(get_cities(), get_distances(), SEIRSNode, get_dvars(), get_time_vars(), get_travel_vars())
-    tracker, _, time_tracker, _ = net.simulate()
+def test_i_over_time(trials=10):
+    avg_I_data = pd.DataFrame([])
+    infected_times = defaultdict(lambda: 0)
+    for i in tqdm(range(trials), desc="Trials"):
+        net = DiseaseNetwork(get_cities(), get_distances(), SEIRSNode, get_dvars(), get_time_vars(), get_travel_vars())
+        tracker, _, time_tracker, _ = net.simulate()
 
-    distance_from_start_order = np.array(get_distances()[np.where(np.array(get_cities())[:,0] == get_start_nodes()[0])[0][0]]).argsort()
-    city_list = np.array(list(tracker))[distance_from_start_order]
-    I_populations = np.array([[i[2] / i[4] for i in np.array(city_stats)] for city_stats in tracker.values()])[distance_from_start_order]
+        distance_from_start_order = np.array(get_distances()[np.where(np.array(get_cities())[:,0] == get_start_nodes()[0])[0][0]]).argsort()
+        city_list = np.array(list(tracker))[distance_from_start_order]
+        I_populations = np.array([[i[2] / i[4] for i in np.array(city_stats)] for city_stats in tracker.values()])[distance_from_start_order]
 
-    def logplusone(a):
-        return np.log10(a+1)
+        def logplusone(a):
+            return np.log10(a+1)
+        # .apply(logplusone)
+        data = pd.DataFrame(I_populations, columns=time_tracker, index=city_list)
 
-    data = pd.DataFrame(I_populations, columns=time_tracker, index=city_list).apply(logplusone)
+        if avg_I_data.empty:
+            avg_I_data = data 
+        else:
+            avg_I_data += data 
 
-    _, ax = plt.subplots()
-    ax = sns.heatmap(data, ax=ax, xticklabels=int(len(time_tracker)/15))
-    plt.title("Infected Population Over Time")
+        for city in data.index:
+            start = 0
+            end = 0
+            for time, percent_pop in data.loc[city].iteritems():
+                if start == 0 and percent_pop > .02:
+                    start = time 
+                
+                if start > 0 and percent_pop < .02:
+                    end = time 
+                    break 
+            
+            if end == 0:
+                end = 200
 
+            infected_times[city] += end - start 
+
+    infected_times = dict((city, total_times / trials) for city, total_times in infected_times.items())
+    avg_I_data = avg_I_data.div(trials)
+    figures, ax = plt.subplots(1, 2)
+    sns.heatmap(avg_I_data, ax=ax[0], xticklabels=int(len(time_tracker)/15))
+    ax[0].set_title("Infected Population Over Time")
     txt=f"Percent of population infected over time with y axis arranged by distance from {get_start_nodes()[0]}. The time period is {get_time_vars()['total_time']} days. The travel model used is {get_travel_vars()['connection_type']}."
     plt.figtext(0.5, 0.01, txt, wrap=True, horizontalalignment='center', fontsize=12)
-
+    sns.barplot(x=list(infected_times.keys()), y=list(infected_times.values()), ax=ax[1])
+    plt.setp(ax[1].get_xticklabels(), rotation=30, horizontalalignment='right', fontsize='x-small')
     plt.show()
 
 def test_network(): 
     net = DiseaseNetwork(get_cities(), get_distances(), SEIRSNode, get_dvars(), get_time_vars(), get_travel_vars())
     tracker, _, time_tracker, peak_I_tracker = net.simulate()
-    cities = ['Chicago', 'Milwaukee', 'Rockford', 'Gary', 'St. Louis', 'Columbus', 'Sioux Falls', 'Fargo']
+    cities = ['Chicago', 'Milwaukee', 'Rockford', 'Gary', 'St. Louis', 'Columbus', 'Independence', 'Olathe']
     for city, number in zip(cities, range(1, len(cities) + 1)):
         populations = np.array(tracker[city])
         plt.subplot(2,4,number)
@@ -87,8 +122,8 @@ def test_single_node():
 if __name__ == "__main__":
     # test_two_nodes()
     # test_single_node()
-    test_network()
-    # test_i_over_time()
+    # test_network()
+    test_i_over_time(1)
     # test_total_i_over_time()
 
 """
@@ -117,7 +152,5 @@ For quarantine period, think about making sure not all people come out recovered
 Same set of parameters, run it once for each city starting. Compare how city size and distance from chicago or distance from center of network (think about summing all 
 distances, connectedness to network)
 
-Can we see how long the infected period lasts? Will have to define this as passing .5% threshold or 1% threshold or maybe think about wavelet transform (paper that was sent to me recently)
-
-Run averages over a number of trials
+Cities that avoid an epidemic see starting in a rural area vs a city, have number of quarantine days on the x axis, also include testing rate
 """

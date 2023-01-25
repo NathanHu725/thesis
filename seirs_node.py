@@ -48,15 +48,15 @@ class SEIRSNode(DiseaseNode):
     # Returns Suscetible, Exposed, Infected, Recovered at each timestamp
     def increment(self):
         self.t += self.delta_t
-        dN_SE = binomial(self.S, 1 - np.exp(-1 * self.beta * self.I / (self.S + self.I + self.E + self.R) * self.delta_t))
-        dN_EI = binomial(self.E, 1 - np.exp(-1 * self.sigma * self.delta_t))
-        dN_IR = binomial(self.I, 1 - np.exp(-1 * self.gamma * self.delta_t))
-        dN_RS = binomial(self.R, 1 - np.exp(-1 * self.omega * self.delta_t))
-        dN_NS = binomial(self.S, 1 - np.exp(-1 * self.mu * self.delta_t))
-        dN_SN = binomial(self.S, 1 - np.exp(-1 * self.mu_2 * self.delta_t))
-        dN_EN = binomial(self.E, 1 - np.exp(-1 * self.mu_2 * self.delta_t))
-        dN_IN = binomial(self.I, 1 - np.exp(-1 * (self.mu_2 + self.v) * self.delta_t))
-        dN_RN = binomial(self.R, 1 - np.exp(-1 * self.mu_2 * self.delta_t))
+        dN_SE = binomial(max(self.S, 0), 1 - np.exp(-1 * self.beta * max(self.I, 1) / (self.S + self.I + self.E + self.R) * self.delta_t))
+        dN_EI = binomial(max(self.E, 0), 1 - np.exp(-1 * self.sigma * self.delta_t))
+        dN_IR = binomial(max(self.I, 0), 1 - np.exp(-1 * self.gamma * self.delta_t))
+        dN_RS = binomial(max(self.R, 0), 1 - np.exp(-1 * self.omega * self.delta_t))
+        dN_NS = binomial(max(self.S, 0), 1 - np.exp(-1 * self.mu * self.delta_t))
+        dN_SN = binomial(max(self.S, 0), 1 - np.exp(-1 * self.mu_2 * self.delta_t))
+        dN_EN = binomial(max(self.E, 0), 1 - np.exp(-1 * self.mu_2 * self.delta_t))
+        dN_IN = binomial(max(self.I, 0), 1 - np.exp(-1 * (self.mu_2 + self.v) * self.delta_t))
+        dN_RN = binomial(max(self.R, 0), 1 - np.exp(-1 * self.mu_2 * self.delta_t))
 
         # Change in susceptible
         self.S += -dN_SE + dN_RS + dN_NS - dN_SN
@@ -119,18 +119,21 @@ class SEIRSNode(DiseaseNode):
         new_S, new_E, new_I, new_R = self.quarantine_buffer.pop(0)
         
         # Some exposed patients will become infected during the qurantine period, so the same binomial stochastic model is used with an updated 't' variable
-        dN_EI = binomial(new_E, 1 - np.exp(-1 * self.sigma * self.quarantine_days))
+        dN_EI = binomial(max(new_E, 0), 1 - np.exp(-1 * self.sigma * self.quarantine_days))
         new_I += dN_EI 
         new_E -= dN_EI
 
         # Some infected patients will recover during quarantine, so we address that here
-        dN_IR = binomial(new_I, 1 - np.exp(-1 * self.gamma * self.quarantine_days))
+        dN_IR = binomial(max(new_I, 0), 1 - np.exp(-1 * self.gamma * self.quarantine_days))
         new_R += dN_IR
 
         # Finally, some individuals will die because of the disease during quarantine, so they are accound for here
-        dN_IN = binomial(new_I, 1 - np.exp(-1 * (self.mu_2 + self.v) * self.quarantine_days))
+        dN_IN = binomial(max(new_I, 0), 1 - np.exp(-1 * (self.mu_2 + self.v) * self.quarantine_days))
         new_I -= dN_IR
         new_I -= dN_IN
+
+        if self.name == 'Olathe':
+            print(f'{new_I} and {new_E} and {dN_IN} and {dN_IR}')
 
         self.S += new_S
         self.E += new_E 
