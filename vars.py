@@ -3,7 +3,7 @@ import numpy as np
 from numpy.random import binomial
 
 def get_start_nodes():
-    return ['Columbus']
+    return ['Chicago']
 
 def get_dvars():
     return dvars
@@ -110,7 +110,7 @@ dvars = {
     'disease_death_rate': .001,
     'incubation_rate': 1/3,
     'recovery_rate': 1/10,
-    'lost_immunity_rate': 1/(365),
+    'lost_immunity_rate': 1/(200),
     'threshold_function': percent_threshold,
     'testing_function': num_to_test_positive,
     'quarantine_days': 0,
@@ -119,7 +119,7 @@ dvars = {
 
 time_vars = {
     'time_step': .5,
-    'total_time': 400
+    'total_time': 1000
 }
 
 testing_vars = {

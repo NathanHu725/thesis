@@ -132,8 +132,8 @@ class SEIRSNode(DiseaseNode):
         new_I -= dN_IR
         new_I -= dN_IN
 
-        if self.name == 'Olathe':
-            print(f'{new_I} and {new_E} and {dN_IN} and {dN_IR}')
+        # if self.name == 'Olathe':
+        #     print(f'{new_I} and {new_E} and {dN_IN} and {dN_IR}')
 
         self.S += new_S
         self.E += new_E 
