@@ -13,6 +13,53 @@ from collections import defaultdict
 
 from scipy import signal, fft
 
+def test_peak_incidence(trials=10):
+    avg_I_data = pd.DataFrame([])
+    for i in tqdm(range(trials), desc="Trials"):
+        try:
+            net = DiseaseNetwork(get_cities(), get_distances(), SEIRSNode, get_dvars(), get_time_vars(), get_travel_vars())
+        except:
+            print("Invalid Run")
+        tracker, _, time_tracker, _ = net.simulate()
+
+        distance_from_start_order = np.array(get_distances()[np.where(np.array(get_cities())[:,0] == get_start_nodes()[0])[0][0]]).argsort()
+        city_list = np.array(list(tracker))[distance_from_start_order]
+        I_populations = np.array([[i[2] / i[4] for i in np.array(city_stats)] for city_stats in tracker.values()])[distance_from_start_order]
+
+        def logplusone(a):
+            return np.log10(a+1)
+        data = pd.DataFrame(I_populations, columns=time_tracker, index=city_list).apply(logplusone)
+
+        if avg_I_data.empty:
+            avg_I_data = data 
+        else:
+            avg_I_data += data 
+
+    avg_I_data = avg_I_data.div(trials)
+
+    
+    for i in avg_I_data.index:
+        cwtmatr = signal.cwt(avg_I_data.loc[i], SIGNAL, widths)
+        ax[0].plot(time_tracker, abs(cwtmatr[WIDTH - 1]))
+
+    cwtmatr = signal.cwt(avg_I_data.iloc[0], SIGNAL, widths)
+    for width in cwtmatr[1:]:
+        ax[1].plot(time_tracker, width)
+
+    ax[2].plot(SIGNAL(M=100, s=WIDTH))
+
+    # ax[1].plot(time_tracker, cwtmatr[-1])
+    # sns.heatmap(np.flipud(cwtmatr), ax=ax[0], xticklabels=int(len(time_tracker)/15))
+    # sns.heatmap(fft.dct(avg_I_data.values)[:,:20], ax=ax[2], xticklabels=int(len(time_tracker)/15))
+    # sns.heatmap(avg_I_data, ax=ax[1], xticklabels=int(len(time_tracker)/15))
+    ax[0].set_title(f"All wavelet transforms of width {WIDTH}")
+    ax[1].set_title(f"Infected Population Over Time For {avg_I_data.index[0]}")
+    ax[2].set_title(f"Visualization of Morlet2 for width {WIDTH}")
+    txt=f"Percent of population infected over time with y axis arranged by distance from {get_start_nodes()[0]}. The time period is {get_time_vars()['total_time']} days. The travel model used is {get_travel_vars()['connection_type']}."
+    plt.figtext(0.5, 0.01, txt, wrap=True, horizontalalignment='center', fontsize=12)
+    plt.show()
+
+
 def test_i_over_time_wavelets(trials=10):
     avg_I_data = pd.DataFrame([])
     for i in tqdm(range(trials), desc="Trials"):
@@ -39,15 +86,45 @@ def test_i_over_time_wavelets(trials=10):
 
     widths = np.arange(1, 31)
     # ['daub', 'qmf', 'cascade', 'morlet', 'ricker', 'cwt']
-    cwtmatr = signal.cwt(avg_I_data.iloc[0], signal.morlet2, widths)
+
+    WIDTH = 1
+    SIGNAL = signal.morlet2
 
     _, ax = plt.subplots(1, 3)
-    ax[0].plot(time_tracker, cwtmatr[0])
-    ax[1].plot(time_tracker, cwtmatr[-1])
-    # sns.heatmap(np.flipud(cwtmatr), ax=ax[0], xticklabels=int(len(time_tracker)/15))
-    # sns.heatmap(fft.dct(avg_I_data), ax=ax[0], xticklabels=int(len(time_tracker)/15))
-    sns.heatmap(avg_I_data, ax=ax[2], xticklabels=int(len(time_tracker)/15))
-    ax[0].set_title(f"Infected Population Over Time For {avg_I_data.index[0]}")
+    for i in avg_I_data.index:
+        color = 'gray'
+        cwtmatr = signal.cwt(avg_I_data.loc[i], SIGNAL, widths)
+        ax[2].plot(time_tracker, abs(cwtmatr[WIDTH - 1]), color)
+
+    for i in avg_I_data.index:
+        if i == 'Fargo':
+            color = 'r'
+            cwtmatr = signal.cwt(avg_I_data.loc[i], SIGNAL, widths)
+            ax[2].plot(time_tracker, abs(cwtmatr[WIDTH - 1]), color)
+        elif i == 'Columbus':
+            color = 'g'
+            cwtmatr = signal.cwt(avg_I_data.loc[i], SIGNAL, widths)
+            ax[2].plot(time_tracker, abs(cwtmatr[WIDTH - 1]), color)
+        elif i == 'Chicago':
+            color = 'b'
+            cwtmatr = signal.cwt(avg_I_data.loc[i], SIGNAL, widths)
+            ax[2].plot(time_tracker, abs(cwtmatr[WIDTH - 1]), color)
+        else:
+            pass
+
+    # cwtmatr = signal.cwt(avg_I_data.iloc[0], SIGNAL, widths)
+    # for width in cwtmatr[1:]:
+    #     ax[1].plot(time_tracker, width)
+
+    ax[1].plot(SIGNAL(M=100, s=WIDTH))
+
+    # ax[1].plot(time_tracker, cwtmatr[-1])
+    sns.heatmap(np.flipud(abs(cwtmatr)), ax=ax[0], xticklabels=int(len(time_tracker)/15))
+    # sns.heatmap(fft.dct(avg_I_data.values)[:,:20], ax=ax[2], xticklabels=int(len(time_tracker)/15))
+    # sns.heatmap(avg_I_data, ax=ax[1], xticklabels=int(len(time_tracker)/15))
+    ax[2].set_title(f"All wavelet transforms of width {WIDTH}")
+    # ax[1].set_title(f"Infected Population Over Time For {avg_I_data.index[0]}")
+    # ax[2].set_title(f"Visualization of Morlet2 for width {WIDTH}")
     txt=f"Percent of population infected over time with y axis arranged by distance from {get_start_nodes()[0]}. The time period is {get_time_vars()['total_time']} days. The travel model used is {get_travel_vars()['connection_type']}."
     plt.figtext(0.5, 0.01, txt, wrap=True, horizontalalignment='center', fontsize=12)
     plt.show()
@@ -166,7 +243,7 @@ if __name__ == "__main__":
     # test_single_node()
     # test_network()
     # test_i_over_time(1)
-    # test_total_i_over_time()
+    # test_total_i_over_time(1)
     test_i_over_time_wavelets(1)
 
 """
@@ -191,12 +268,11 @@ distances, connectedness to network)
 
 Cities that avoid an epidemic see starting in a rural area vs a city, have number of quarantine days on the x axis, also include testing rate
 
-could look at cumulative cases within a node to do the thresholding, average total population for each node
-
-look at rohab (the one with the map), look at a single componenet of the wavelet
-understand what width means, how we can choose
-how to compute residual phase angles (what does this mean) and graph this vs distance from chicago
-maybe look at fourier transforms?
-
 look at dS over dI
+
+Plot time of max i (wavelet transform, also do simulation) vs distance from Chicago, see if this varies with time step increase
+
+Use a discrete time model of the ODE to show correctness when compared to the stochastic model, do for one city also talk about keeping populations constant
+
+Time vs ode for varying beta, have an average beta, maybe have a periodic function dependent on time (B_0 (1 + B_1sin(period)))
 """

@@ -3,7 +3,7 @@ import numpy as np
 from numpy.random import binomial
 
 def get_start_nodes():
-    return ['Chicago']
+    return ['Columbus']
 
 def get_dvars():
     return dvars
@@ -21,7 +21,7 @@ def get_distances():
     return distances_extended
 
 def constant_threshold(infected, total_pop):
-    threshold_pop = 120000
+    threshold_pop = 100000
     tested_positive = num_to_test_positive(infected)
     # tested_positive += binomial(total_pop - infected, testing_vars['negative_to_postive'])
     return tested_positive > threshold_pop
@@ -108,9 +108,9 @@ dvars = {
     'birth_rate': 1 / (55 * 365),
     'natural_death_rate': 1 / (75 * 365),
     'disease_death_rate': .001,
-    'incubation_rate': 1/3,
+    'incubation_rate': 1/10,
     'recovery_rate': 1/10,
-    'lost_immunity_rate': 1/(200),
+    'lost_immunity_rate': 1/(365),
     'threshold_function': percent_threshold,
     'testing_function': num_to_test_positive,
     'quarantine_days': 0,
@@ -118,8 +118,8 @@ dvars = {
 }
 
 time_vars = {
-    'time_step': .5,
-    'total_time': 1000
+    'time_step': 5,
+    'total_time': 1500
 }
 
 testing_vars = {

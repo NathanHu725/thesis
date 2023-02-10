@@ -52,7 +52,7 @@ class SEIRSNode(DiseaseNode):
         dN_EI = binomial(max(self.E, 0), 1 - np.exp(-1 * self.sigma * self.delta_t))
         dN_IR = binomial(max(self.I, 0), 1 - np.exp(-1 * self.gamma * self.delta_t))
         dN_RS = binomial(max(self.R, 0), 1 - np.exp(-1 * self.omega * self.delta_t))
-        dN_NS = binomial(max(self.S, 0), 1 - np.exp(-1 * self.mu * self.delta_t))
+        dN_NS = binomial(max((self.S + self.E + self.I + self.R), 0), 1 - np.exp(-1 * self.mu * self.delta_t))
         dN_SN = binomial(max(self.S, 0), 1 - np.exp(-1 * self.mu_2 * self.delta_t))
         dN_EN = binomial(max(self.E, 0), 1 - np.exp(-1 * self.mu_2 * self.delta_t))
         dN_IN = binomial(max(self.I, 0), 1 - np.exp(-1 * (self.mu_2 + self.v) * self.delta_t))
