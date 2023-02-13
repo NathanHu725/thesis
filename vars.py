@@ -3,7 +3,7 @@ import numpy as np
 from numpy.random import binomial
 
 def get_start_nodes():
-    return ['Columbus']
+    return ['Naperville']
 
 def get_dvars():
     return dvars
@@ -23,7 +23,6 @@ def get_distances():
 def constant_threshold(infected, total_pop):
     threshold_pop = 100000
     tested_positive = num_to_test_positive(infected)
-    # tested_positive += binomial(total_pop - infected, testing_vars['negative_to_postive'])
     return tested_positive > threshold_pop
 
 def percent_threshold(infected, total_pop):
@@ -33,6 +32,14 @@ def percent_threshold(infected, total_pop):
 
 def num_to_test_positive(testers):
     return binomial(max(testers, 1), testing_vars['positive_to_positive'])
+
+def constant_beta(time, beta):
+    return beta
+
+def sin_beta(time, beta):
+    # This variable indicates how many times above and below the beta value we go, should be less than one to stay positive
+    spike = 1
+    return beta * (1 + spike * np.sin(time * 2 * np.pi / 365))
 
 cities_extended = [('Milwaukee', 570000), ('Rockford', 147000), ('Gary', 70000), ('Chicago', 2670000), ('Minneapolis', 425000), ('St. Paul', 307000), ('Madison', 270000), ('Indianapolis', 882000), ('Fort Wayne', 265974), ('Des Moines', 212031), ('Aurora', 179266), ('Grand Rapids', 197416), ('Overland Park', 197106), ('Akron', 189347), ('Sioux Falls', 196528), ('Springfield MO', 169724), ('Kansas City MO', 508394), ('Joliet', 150371), ('Naperville', 149104), ('Dayton', 137571), ('Warren', 138130), ('Olathe', 143014), ('Sterling Heights', 131996), ('Cedar Rapids', 130330), ('Topeka', 127139), ('Fargo', 125804), ('Rochester', 124599), ('Evansville', 119806), ('Ann Arbor', 119303), ('Columbia', 118620), ('Independence', 117369), ('Springfield IL', 116313), ('Peoria', 115424), ('Lansing', 115222), ('Elgin', 112628), ('Green Bay', 104796), ('Toledo', 268508), ('Lincoln', 293000), ('St. Louis', 301000), ('Columbus', 905000), ('Detroit', 639000), ('Kansas City KS', 477000), ('Omaha', 463000), ('Wichita', 397000), ('Cleveland', 373000), ('Cincinnati', 309000)]
 cities = [('Milwaukee', 570000), ('Rockford', 147000), ('Gary', 70000), ('Chicago', 2670000), ('Minneapolis', 425000), ('St. Paul', 307000), ('Madison', 270000), ('Indianapolis', 882000)]
@@ -105,6 +112,7 @@ distances_extended = [
 
 dvars = {
     'beta': 2/5, 
+    'beta_fun': sin_beta,
     'birth_rate': 1 / (55 * 365),
     'natural_death_rate': 1 / (75 * 365),
     'disease_death_rate': .001,
@@ -118,7 +126,7 @@ dvars = {
 }
 
 time_vars = {
-    'time_step': 5,
+    'time_step': 2,
     'total_time': 1500
 }
 

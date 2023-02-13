@@ -13,7 +13,7 @@ from collections import defaultdict
 
 from scipy import signal, fft
 
-def test_peak_incidence(trials=10):
+def get_avg_data(trials):
     avg_I_data = pd.DataFrame([])
     for i in tqdm(range(trials), desc="Trials"):
         try:
@@ -35,55 +35,61 @@ def test_peak_incidence(trials=10):
         else:
             avg_I_data += data 
 
-    avg_I_data = avg_I_data.div(trials)
+    return avg_I_data.div(trials), time_tracker
 
-    
+def test_time_of_max_i(trials=10):
+    avg_I_data, time_tracker = get_avg_data(trials)
+
+    distances = pd.DataFrame(np.array(get_distances()[np.where(np.array(get_cities())[:,0] == get_start_nodes()[0])[0][0]]), columns=["Distances"], index=np.array(get_cities())[:,0]).sort_values(by="Distances")
+    colors = ["green" if i == 'Columbus' else "blue" if i == 'Chicago' else "red" if i == 'Fargo' else "grey" for i in distances.index]
+
+    WIDTH = 1
+    SIGNAL = signal.morlet2
+
+    _, ax = plt.subplots(1, 2)
+
+    ax[0].scatter(distances, avg_I_data.idxmax(axis=1), color=colors)
+    ax[0].set_title("Max I Value")
+    ax[0].set_ylabel("Time in Days")
+    ax[0].set_xlabel(f"Distances from {get_start_nodes()[0]}")
+
+    # max_wavelet = []
+    # for i in avg_I_data.index:
+    #     max_wavelet.append(np.argmax(abs(signal.cwt(avg_I_data.loc[i], SIGNAL, [1]))) * get_time_vars()['time_step'])
+
+    # ax[1].scatter(distances, max_wavelet, color=colors)
+    # ax[1].set_title("Max value of wavelet transform")
+
     for i in avg_I_data.index:
-        cwtmatr = signal.cwt(avg_I_data.loc[i], SIGNAL, widths)
-        ax[0].plot(time_tracker, abs(cwtmatr[WIDTH - 1]))
+        color = 'gray'
+        cwtmatr = signal.cwt(avg_I_data.loc[i], SIGNAL, [1])
+        ax[1].plot(time_tracker[:], abs(cwtmatr[WIDTH - 1])[:], color)
 
-    cwtmatr = signal.cwt(avg_I_data.iloc[0], SIGNAL, widths)
-    for width in cwtmatr[1:]:
-        ax[1].plot(time_tracker, width)
+    for i in ['Fargo', 'Columbus', 'Chicago']:
+        if i == 'Fargo':
+            color = 'r'
+            cwtmatr = signal.cwt(avg_I_data.loc[i], SIGNAL, [1])
+            ax[1].plot(time_tracker[:], abs(cwtmatr[WIDTH - 1])[:], color, label=i)
+        elif i == 'Columbus':
+            color = 'g'
+            cwtmatr = signal.cwt(avg_I_data.loc[i], SIGNAL, [1])
+            ax[1].plot(time_tracker[:], abs(cwtmatr[WIDTH - 1])[:], color, label=i)
+        elif i == 'Chicago':
+            color = 'b'
+            cwtmatr = signal.cwt(avg_I_data.loc[i], SIGNAL, [1])
+            ax[1].plot(time_tracker[:], abs(cwtmatr[WIDTH - 1])[:], color, label=i)
+        else:
+            pass
 
-    ax[2].plot(SIGNAL(M=100, s=WIDTH))
-
-    # ax[1].plot(time_tracker, cwtmatr[-1])
-    # sns.heatmap(np.flipud(cwtmatr), ax=ax[0], xticklabels=int(len(time_tracker)/15))
-    # sns.heatmap(fft.dct(avg_I_data.values)[:,:20], ax=ax[2], xticklabels=int(len(time_tracker)/15))
-    # sns.heatmap(avg_I_data, ax=ax[1], xticklabels=int(len(time_tracker)/15))
-    ax[0].set_title(f"All wavelet transforms of width {WIDTH}")
-    ax[1].set_title(f"Infected Population Over Time For {avg_I_data.index[0]}")
-    ax[2].set_title(f"Visualization of Morlet2 for width {WIDTH}")
-    txt=f"Percent of population infected over time with y axis arranged by distance from {get_start_nodes()[0]}. The time period is {get_time_vars()['total_time']} days. The travel model used is {get_travel_vars()['connection_type']}."
-    plt.figtext(0.5, 0.01, txt, wrap=True, horizontalalignment='center', fontsize=12)
+    ax[1].set_title("Morlet Wavelet Transform of Width 1 For All Cities")
+    ax[1].set_ylabel("Incidence with Morlet")
+    ax[1].set_xlabel("Time in Days")
+    plt.legend(loc='upper right')
     plt.show()
 
 
 def test_i_over_time_wavelets(trials=10):
-    avg_I_data = pd.DataFrame([])
-    for i in tqdm(range(trials), desc="Trials"):
-        try:
-            net = DiseaseNetwork(get_cities(), get_distances(), SEIRSNode, get_dvars(), get_time_vars(), get_travel_vars())
-        except:
-            print("Invalid Run")
-        tracker, _, time_tracker, _ = net.simulate()
-
-        distance_from_start_order = np.array(get_distances()[np.where(np.array(get_cities())[:,0] == get_start_nodes()[0])[0][0]]).argsort()
-        city_list = np.array(list(tracker))[distance_from_start_order]
-        I_populations = np.array([[i[2] / i[4] for i in np.array(city_stats)] for city_stats in tracker.values()])[distance_from_start_order]
-
-        def logplusone(a):
-            return np.log10(a+1)
-        data = pd.DataFrame(I_populations, columns=time_tracker, index=city_list).apply(logplusone)
-
-        if avg_I_data.empty:
-            avg_I_data = data 
-        else:
-            avg_I_data += data 
-
-    avg_I_data = avg_I_data.div(trials)
-
+    avg_I_data, time_tracker = get_avg_data(trials)
     widths = np.arange(1, 31)
     # ['daub', 'qmf', 'cascade', 'morlet', 'ricker', 'cwt']
 
@@ -94,21 +100,21 @@ def test_i_over_time_wavelets(trials=10):
     for i in avg_I_data.index:
         color = 'gray'
         cwtmatr = signal.cwt(avg_I_data.loc[i], SIGNAL, widths)
-        ax[2].plot(time_tracker, abs(cwtmatr[WIDTH - 1]), color)
+        ax[2].plot(time_tracker[:200], abs(cwtmatr[WIDTH - 1])[:200], color)
 
     for i in avg_I_data.index:
         if i == 'Fargo':
             color = 'r'
             cwtmatr = signal.cwt(avg_I_data.loc[i], SIGNAL, widths)
-            ax[2].plot(time_tracker, abs(cwtmatr[WIDTH - 1]), color)
+            ax[2].plot(time_tracker[:200], abs(cwtmatr[WIDTH - 1])[:200], color)
         elif i == 'Columbus':
             color = 'g'
             cwtmatr = signal.cwt(avg_I_data.loc[i], SIGNAL, widths)
-            ax[2].plot(time_tracker, abs(cwtmatr[WIDTH - 1]), color)
+            ax[2].plot(time_tracker[:200], abs(cwtmatr[WIDTH - 1])[:200], color)
         elif i == 'Chicago':
             color = 'b'
             cwtmatr = signal.cwt(avg_I_data.loc[i], SIGNAL, widths)
-            ax[2].plot(time_tracker, abs(cwtmatr[WIDTH - 1]), color)
+            ax[2].plot(time_tracker[:200], abs(cwtmatr[WIDTH - 1])[:200], color)
         else:
             pass
 
@@ -151,7 +157,7 @@ def test_total_i_over_time(trials=10):
     plt.xlabel('Time')
     plt.ylabel('Disease Populations')
     plt.title('Total Populations over Time Starting in Joliet')
-    plt.legend(['S Population', 'E Population', 'I Population', 'R Population', 'Total Population'])
+    plt.legend(['S Population', 'E Population', 'I Population', 'R Population', 'Total Population'], loc='upper right')
     
     plt.show()
 
@@ -218,7 +224,7 @@ def test_network():
         plt.xlabel('Time')
         plt.ylabel('Disease Populations')
         plt.title(city)
-        plt.legend(['S Population', 'E Population', 'I Population', 'R Population', 'Total Population'])
+        plt.legend(['S Population', 'E Population', 'I Population', 'R Population', 'Total Population'], loc='upper right')
     
     plt.show()
 
@@ -226,7 +232,6 @@ def test_single_node():
     net = DiseaseNetwork(get_cities(), get_distances(), SEIRSNode, get_dvars(), get_time_vars(), get_travel_vars())
     tracker, _, time_tracker, peak_I_tracker = net.simulate()
     populations = np.array(tracker['Chicago'])
-    plt.subplot(2,4,1)
     S = plt.plot(time_tracker, populations[:,0], 'r')
     E = plt.plot(time_tracker, populations[:,1], 'y')
     I = plt.plot(time_tracker, populations[:,2], 'b')
@@ -235,16 +240,8 @@ def test_single_node():
     plt.xlabel('Time')
     plt.ylabel('Disease Populations')
     plt.title('Chicago')    
-    plt.legend(['S Population', 'E Population', 'I Population', 'R Population'])
+    plt.legend(['S Population', 'E Population', 'I Population', 'R Population'], loc='upper right')
     plt.show()
-
-if __name__ == "__main__":
-    # test_two_nodes()
-    # test_single_node()
-    # test_network()
-    # test_i_over_time(1)
-    # test_total_i_over_time(1)
-    test_i_over_time_wavelets(1)
 
 """
 Think about questions to ask
@@ -270,9 +267,6 @@ Cities that avoid an epidemic see starting in a rural area vs a city, have numbe
 
 look at dS over dI
 
-Plot time of max i (wavelet transform, also do simulation) vs distance from Chicago, see if this varies with time step increase
 
 Use a discrete time model of the ODE to show correctness when compared to the stochastic model, do for one city also talk about keeping populations constant
-
-Time vs ode for varying beta, have an average beta, maybe have a periodic function dependent on time (B_0 (1 + B_1sin(period)))
 """
