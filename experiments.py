@@ -41,7 +41,7 @@ def test_time_of_max_i(trials=10):
     avg_I_data, time_tracker = get_avg_data(trials)
 
     distances = pd.DataFrame(np.array(get_distances()[np.where(np.array(get_cities())[:,0] == get_start_nodes()[0])[0][0]]), columns=["Distances"], index=np.array(get_cities())[:,0]).sort_values(by="Distances")
-    colors = ["green" if i == 'Columbus' else "blue" if i == 'Chicago' else "red" if i == 'Fargo' else "grey" for i in distances.index]
+    colors = ["green" if i == 'Columbus' else "blue" if i == 'Chicago' else "red" if i == 'Fargo' else "orange" if i == 'Wichita' else "lightgrey" for i in distances.index]
 
     WIDTH = 1
     SIGNAL = signal.morlet2
@@ -61,11 +61,11 @@ def test_time_of_max_i(trials=10):
     # ax[1].set_title("Max value of wavelet transform")
 
     for i in avg_I_data.index:
-        color = 'gray'
+        color = 'lightgray'
         cwtmatr = signal.cwt(avg_I_data.loc[i], SIGNAL, [1])
         ax[1].plot(time_tracker[:], abs(cwtmatr[WIDTH - 1])[:], color)
 
-    for i in ['Fargo', 'Columbus', 'Chicago']:
+    for i in ['Fargo', 'Columbus', 'Chicago', 'Wichita']:
         if i == 'Fargo':
             color = 'r'
             cwtmatr = signal.cwt(avg_I_data.loc[i], SIGNAL, [1])
@@ -76,6 +76,10 @@ def test_time_of_max_i(trials=10):
             ax[1].plot(time_tracker[:], abs(cwtmatr[WIDTH - 1])[:], color, label=i)
         elif i == 'Chicago':
             color = 'b'
+            cwtmatr = signal.cwt(avg_I_data.loc[i], SIGNAL, [1])
+            ax[1].plot(time_tracker[:], abs(cwtmatr[WIDTH - 1])[:], color, label=i)
+        elif i == 'Wichita':
+            color = 'orange'
             cwtmatr = signal.cwt(avg_I_data.loc[i], SIGNAL, [1])
             ax[1].plot(time_tracker[:], abs(cwtmatr[WIDTH - 1])[:], color, label=i)
         else:
@@ -100,21 +104,21 @@ def test_i_over_time_wavelets(trials=10):
     for i in avg_I_data.index:
         color = 'gray'
         cwtmatr = signal.cwt(avg_I_data.loc[i], SIGNAL, widths)
-        ax[2].plot(time_tracker[:200], abs(cwtmatr[WIDTH - 1])[:200], color)
+        ax[2].plot(time_tracker, abs(cwtmatr[WIDTH - 1]), color)
 
     for i in avg_I_data.index:
         if i == 'Fargo':
             color = 'r'
             cwtmatr = signal.cwt(avg_I_data.loc[i], SIGNAL, widths)
-            ax[2].plot(time_tracker[:200], abs(cwtmatr[WIDTH - 1])[:200], color)
+            ax[2].plot(time_tracker, abs(cwtmatr[WIDTH - 1]), color)
         elif i == 'Columbus':
             color = 'g'
             cwtmatr = signal.cwt(avg_I_data.loc[i], SIGNAL, widths)
-            ax[2].plot(time_tracker[:200], abs(cwtmatr[WIDTH - 1])[:200], color)
+            ax[2].plot(time_tracker, abs(cwtmatr[WIDTH - 1]), color)
         elif i == 'Chicago':
             color = 'b'
             cwtmatr = signal.cwt(avg_I_data.loc[i], SIGNAL, widths)
-            ax[2].plot(time_tracker[:200], abs(cwtmatr[WIDTH - 1])[:200], color)
+            ax[2].plot(time_tracker, abs(cwtmatr[WIDTH - 1]), color)
         else:
             pass
 
@@ -204,9 +208,12 @@ def test_i_over_time(trials=10):
     sns.heatmap(avg_I_data, ax=ax[0], xticklabels=int(len(time_tracker)/15))
     ax[0].set_title("Infected Population Over Time")
     txt=f"Percent of population infected over time with y axis arranged by distance from {get_start_nodes()[0]}. The time period is {get_time_vars()['total_time']} days. The travel model used is {get_travel_vars()['connection_type']}."
-    plt.figtext(0.5, 0.01, txt, wrap=True, horizontalalignment='center', fontsize=12)
-    sns.barplot(x=list(infected_times.keys()), y=list(infected_times.values()), ax=ax[1])
-    plt.setp(ax[1].get_xticklabels(), rotation=30, horizontalalignment='right', fontsize='x-small')
+    for i in avg_I_data.index:
+        color = "green" if i == 'Columbus' else "blue" if i == 'Chicago' else "red" if i == 'Fargo' else "orange" if i == 'Wichita' else "lightgrey"
+        ax[1].plot(time_tracker, avg_I_data.loc[i], color=color)
+    # plt.figtext(0.5, 0.01, txt, wrap=True, horizontalalignment='center', fontsize=12)
+    # sns.barplot(x=list(infected_times.keys()), y=list(infected_times.values()), ax=ax[1])
+    # plt.setp(ax[1].get_xticklabels(), rotation=30, horizontalalignment='right', fontsize='x-small')
     plt.show()
 
 def test_network(): 
@@ -269,4 +276,23 @@ look at dS over dI
 
 
 Use a discrete time model of the ODE to show correctness when compared to the stochastic model, do for one city also talk about keeping populations constant
+
+Play around to see rough observations, start making some observations, how can we compare things
+- Three indicator cities
+- Travel ban cities
+- What else can we change in the model
+    - Types of travel
+    - Quarantine
+    - Thresholding
+    - Immunity loss
+    - Testing Variables
+- Line of best fit with confidence interval (logarithmic or polynomial (order 2 or 3))
+
+Plot against population size
+
+*Overlay the dots for each of the runs, make different colors for each run
+Play with initial conditions (start city)
+Change immunity loss and infectious period
+quarantine, travel ban (is one more effective)
+
 """

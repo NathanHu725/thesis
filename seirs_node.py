@@ -49,7 +49,7 @@ class SEIRSNode(DiseaseNode):
     # Returns Suscetible, Exposed, Infected, Recovered at each timestamp
     def increment(self):
         self.t += self.delta_t
-        dN_SE = binomial(max(self.S, 0), 1 - np.exp(-1 * self.beta_fun(self.t, self.beta) * max(self.I, 1) / (self.S + self.I + self.E + self.R) * self.delta_t))
+        dN_SE = binomial(max(self.S, 0), 1 - np.exp(-1 * self.beta_fun(self.t, self.beta) * max(self.I, 0) / (self.S + self.I + self.E + self.R) * self.delta_t))
         dN_EI = binomial(max(self.E, 0), 1 - np.exp(-1 * self.sigma * self.delta_t))
         dN_IR = binomial(max(self.I, 0), 1 - np.exp(-1 * self.gamma * self.delta_t))
         dN_RS = binomial(max(self.R, 0), 1 - np.exp(-1 * self.omega * self.delta_t))
