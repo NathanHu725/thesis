@@ -1,7 +1,7 @@
 from disease_node import DiseaseNode
 from sir_node import SIRNode
 from seirs_node import SEIRSNode
-from vars import get_start_nodes
+from vars import VarGetter
 
 from tqdm import tqdm
 import numpy as np
@@ -22,7 +22,7 @@ class DiseaseNetwork:
         population_tracker = {}
         peak_I_tracker = {}
         for node_name, population in node_info:
-            new_node = self.node_type(total_population = population, disease_vars = self.disease_vars, delta_t = self.time_step, name=node_name, start_with_disease=node_name in get_start_nodes())
+            new_node = self.node_type(total_population = population, disease_vars = self.disease_vars, delta_t = self.time_step, name=node_name, start_with_disease=node_name in VarGetter().get_start_nodes())
             graph[node_name] = new_node
             node_names.append(node_name)
             population_tracker[node_name] = []
