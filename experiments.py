@@ -14,49 +14,97 @@ from collections import defaultdict
 
 from scipy import signal, fft
 
-def test_die_out(trials=10):
+def quarantine_v_travel_ban(trials=10, city_to_analyze='Chicago'):
     v=VarGetter()
 
-    avg_I_data, time_tracker = get_avg_data(trials, v)
-    
+    vals = []
 
+    for quarantine_days in range(0, 15):
+        vals2 = []
+        for threshold in [.05, .075, .1, .125, .15, .2, 1]:
+            v.threshold = threshold 
+            v.dvars['quarantine_days'] = quarantine_days
+
+            avg_I_data, _ = get_avg_data(trials, v)
+            vals2.append(avg_I_data.idxmax(axis=1)[city_to_analyze])
+
+        vals.append(vals2)
+
+    df = pd.DataFrame(vals, index=np.arange(0, 15), columns=[.05, .075, .1, .125, .15, .2, 1])
+
+    sns.heatmap(df)
+    plt.xlabel('Quarantine Days')
+    plt.xlabel('Travel Ban Threhold (Fraction of Population)')
+    plt.title('Quarantine vs Travel Ban')
+    plt.show()
+
+    
+def beta_ttp(trials=10):
+    v = VarGetter()
+
+    betas, ttpfargo, ttpchicago, ttpcolumbus, ttpwichita = [], [], [], [], []
+
+    for i in tqdm(np.linspace(0, 1, 20), 'Betas'):
+        v.dvars['beta'] = i
+        betas.append(i)
+
+        avg_I_data, _ = get_avg_data(trials, v)
+
+        ttpfargo.append(avg_I_data.idxmax(axis=1)['Fargo'])
+        ttpchicago.append(avg_I_data.idxmax(axis=1)['Chicago'])
+        ttpcolumbus.append(avg_I_data.idxmax(axis=1)['Columbus'])
+        ttpwichita.append(avg_I_data.idxmax(axis=1)['Wichita'])
+
+    plt.scatter(betas, ttpfargo, color='orange', label='Fargo')
+    plt.scatter(betas, ttpchicago, color='blue', label='Chicago')
+    plt.scatter(betas, ttpcolumbus, color='green', label='Columbus')
+    plt.scatter(betas, ttpwichita, color='red', label='Wichita')
+    plt.xlabel('Beta Valus')
+    plt.ylabel('Log of Time (Days)')
+    plt.title('Beta Values vs Time to Peak for Start City')
+    plt.legend()
+    plt.show()
 
 def test_multiple_policies(trials=10):
     v = VarGetter()
     
-    v.dvars['beta'] = 2/3
+    v.dvars['recovery_rate'] = 1/7
     a, b, c, d, x, y = test_time_of_max_i(trials, False, v)
     plt.scatter(x, y, color='lightgreen')
-    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color='green', label='2/3')
+    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color='green', label='1/7')
 
-    v.dvars['beta'] = 2/5
+    v.dvars['recovery_rate'] = 1/10
     a, b, c, d, x, y = test_time_of_max_i(trials, False, v)
     plt.scatter(x, y, color='lightblue')
-    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color='blue', label='2/5')
+    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color='blue', label='1/10')
 
-    v.dvars['beta'] = 1/2
+    v.dvars['recovery_rate'] = 1/21
     a, b, c, d, x, y = test_time_of_max_i(trials, False, v)
     plt.scatter(x, y, color='lightgrey')
-    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color='grey', label='1/2')
+    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color='grey', label='1/21')
 
-    v.dvars['beta'] = 2/7
+    v.dvars['recovery_rate'] = 1/14
     a, b, c, d, x, y = test_time_of_max_i(trials, False, v)
     plt.scatter(x, y, color='mistyrose')
-    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color='red', label='2/7')
+    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color='red', label='1/14')
     plt.legend()
     plt.xlabel(f"Distances from {v.get_start_nodes()[0]} (Miles)")
     plt.ylabel('Time (Days)')
-    plt.title(f"Comparing Max I with Different Beta Vals with {v.threshold} and {v.dvars['quarantine_days']}")
+    plt.title(f"Comparing Max I with Different Recovery Rates with {v.threshold} and {v.dvars['quarantine_days']}")
     plt.show()
 
 def get_avg_data(trials, v):
     avg_I_data = pd.DataFrame([])
     for i in tqdm(range(trials), desc="Trials"):
-        try:
-            net = DiseaseNetwork(v.get_cities(), v.get_distances(), SEIRSNode, v.get_dvars(), v.get_time_vars(), v.get_travel_vars())
-            tracker, _, time_tracker, _ = net.simulate()
-        except:
-            print("Invalid Run")
+        good = False
+        while(not good):
+            try:
+                net = DiseaseNetwork(v.get_cities(), v.get_distances(), SEIRSNode, v.get_dvars(), v.get_time_vars(), v.get_travel_vars())
+                tracker, _, time_tracker, _ = net.simulate()
+                good = True
+            except:
+                print("Invalid Run")
+
         distance_from_start_order = np.array(v.get_distances()[np.where(np.array(v.get_cities())[:,0] == v.get_start_nodes()[0])[0][0]]).argsort()
         city_list = np.array(list(tracker))[distance_from_start_order]
         I_populations = np.array([[i[2] / i[4] for i in np.array(city_stats)] for city_stats in tracker.values()])[distance_from_start_order]
@@ -372,6 +420,9 @@ Play around to see rough observations, start making some observations, how can w
 Play with initial conditions (start city)
 Change immunity loss and infectious period
 quarantine, travel ban (is one more effective)
-avg # of months with no cases, how often does the disease die out in a certain area
 
+beta vs avg time to peak (see if it matches a curve)
+
+think about how to quantify quarantine vs travel ban, surface plot of travel ban vs quarantine days
+think about how the sin_beta function works, how does first case occurrence affect spread
 """

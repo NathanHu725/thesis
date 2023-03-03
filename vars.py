@@ -42,7 +42,7 @@ class VarGetter:
         return beta * (1 + self.spike * np.sin(time * 2 * np.pi / 365))
 
     def __init__(self):
-        self.threshold = .2
+        self.threshold = 1
         self.start_nodes = ['Fargo']
         self.spike = .75
 
@@ -116,7 +116,7 @@ class VarGetter:
         ]
 
         self.dvars = {
-            'beta': 2/3, 
+            'beta': 2/7, 
             'beta_fun': self.sin_beta,
             'birth_rate': 1 / (55 * 365),
             'natural_death_rate': 1 / (75 * 365),
@@ -126,13 +126,13 @@ class VarGetter:
             'lost_immunity_rate': 1/(365),
             'threshold_function': self.percent_threshold,
             'testing_function': self.num_to_test_positive,
-            'quarantine_days': 7,
+            'quarantine_days': 5,
             'all_quarantine': False
         }
 
         self.time_vars = {
             'time_step': 2,
-            'total_time': 800
+            'total_time': 200
         }
 
         self.testing_vars = {
