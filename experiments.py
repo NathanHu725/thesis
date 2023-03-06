@@ -20,8 +20,8 @@ def quarantine_v_travel_ban(trials=10, city_to_analyze='Chicago'):
     idxvals = []
     maxvals = []
 
-    thresh_vals = np.linspace(.05, .4, 20)
-    quarantine_days_list = np.arange(0, 20)
+    thresh_vals = np.around(np.linspace(.05, .4, 30), 2)
+    quarantine_days_list = np.arange(0, 15)
 
     for quarantine_days in tqdm(quarantine_days_list, 'QDays Trials'):
         idxvals2 = []

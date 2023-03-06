@@ -116,13 +116,13 @@ class VarGetter:
         ]
 
         self.dvars = {
-            'beta': 2/7, 
+            'beta': 2/3, 
             'beta_fun': self.sin_beta,
             'birth_rate': 1 / (55 * 365),
             'natural_death_rate': 1 / (75 * 365),
             'disease_death_rate': .001,
             'incubation_rate': 1/3,
-            'recovery_rate': 1/10,
+            'recovery_rate': 1/14,
             'lost_immunity_rate': 1/(365),
             'threshold_function': self.percent_threshold,
             'testing_function': self.num_to_test_positive,
@@ -136,7 +136,7 @@ class VarGetter:
         }
 
         self.testing_vars = {
-            'positive_to_positive': .8,
+            'positive_to_positive': .9,
             'negative_to_positive': .02
         }
 
