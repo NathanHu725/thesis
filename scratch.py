@@ -10,5 +10,5 @@ if __name__ == "__main__":
     # test_i_over_time_wavelets(1)
     # test_time_of_max_i(1)
     # test_multiple_policies(3)
-    # beta_ttp(1)
-    quarantine_v_travel_ban(3)
+    beta_ttp(5)
+    # quarantine_v_travel_ban(3)
