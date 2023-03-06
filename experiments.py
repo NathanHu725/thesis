@@ -54,6 +54,7 @@ def quarantine_v_travel_ban(trials=10, city_to_analyze='Chicago'):
     ax[1].set_title('Quarantine vs Travel Ban (Max Infected)')
 
     plt.show()
+    plt.savefig('Ban vs Quarantine2.png')
     
 def beta_ttp(trials=10):
     v = VarGetter()
