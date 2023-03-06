@@ -17,34 +17,50 @@ from scipy import signal, fft
 def quarantine_v_travel_ban(trials=10, city_to_analyze='Chicago'):
     v=VarGetter()
 
-    vals = []
+    idxvals = []
+    maxvals = []
 
-    for quarantine_days in range(0, 15):
-        vals2 = []
-        for threshold in [.05, .075, .1, .125, .15, .2, 1]:
+    thresh_vals = np.linspace(.05, .4, 20)
+    quarantine_days_list = np.arange(0, 20)
+
+    for quarantine_days in tqdm(quarantine_days_list, 'QDays Trials'):
+        idxvals2 = []
+        maxvals2 = []
+
+        for threshold in thresh_vals:
             v.threshold = threshold 
             v.dvars['quarantine_days'] = quarantine_days
 
             avg_I_data, _ = get_avg_data(trials, v)
-            vals2.append(avg_I_data.idxmax(axis=1)[city_to_analyze])
+            idxvals2.append(avg_I_data.idxmax(axis=1)[city_to_analyze])
+            maxvals2.append(avg_I_data.max(axis=1)[city_to_analyze])
 
-        vals.append(vals2)
+        idxvals.append(idxvals2)
+        maxvals.append(maxvals2)
 
-    df = pd.DataFrame(vals, index=np.arange(0, 15), columns=[.05, .075, .1, .125, .15, .2, 1])
+    idxdf = pd.DataFrame(idxvals, index=quarantine_days_list, columns=thresh_vals)
+    maxdf = pd.DataFrame(maxvals, index=quarantine_days_list, columns=thresh_vals)
 
-    sns.heatmap(df)
-    plt.xlabel('Quarantine Days')
-    plt.xlabel('Travel Ban Threhold (Fraction of Population)')
-    plt.title('Quarantine vs Travel Ban')
+    _, ax = plt.subplots(1, 2)
+
+    sns.heatmap(idxdf, ax=ax[0])
+    ax[0].set_ylabel('Quarantine Days')
+    ax[0].set_xlabel('Travel Ban Threhold (Fraction of Population)')
+    ax[0].set_title('Quarantine vs Travel Ban (Time to Peak)')
+
+    sns.heatmap(maxdf, ax=ax[1])
+    ax[1].set_ylabel('Quarantine Days')
+    ax[1].set_xlabel('Travel Ban Threhold (Fraction of Population)')
+    ax[1].set_title('Quarantine vs Travel Ban (Max Infected)')
+
     plt.show()
-
     
 def beta_ttp(trials=10):
     v = VarGetter()
 
     betas, ttpfargo, ttpchicago, ttpcolumbus, ttpwichita = [], [], [], [], []
 
-    for i in tqdm(np.linspace(0, 1, 20), 'Betas'):
+    for i in tqdm(np.linspace(0.2, 1, 20), 'Betas'):
         v.dvars['beta'] = i
         betas.append(i)
 
@@ -59,9 +75,9 @@ def beta_ttp(trials=10):
     plt.scatter(betas, ttpchicago, color='blue', label='Chicago')
     plt.scatter(betas, ttpcolumbus, color='green', label='Columbus')
     plt.scatter(betas, ttpwichita, color='red', label='Wichita')
-    plt.xlabel('Beta Valus')
+    plt.xlabel('Beta Values')
     plt.ylabel('Log of Time (Days)')
-    plt.title('Beta Values vs Time to Peak for Start City')
+    plt.title(f'Beta Values vs Time to Peak for {v.get_start_nodes()[0]}')
     plt.legend()
     plt.show()
 
@@ -421,8 +437,13 @@ Play with initial conditions (start city)
 Change immunity loss and infectious period
 quarantine, travel ban (is one more effective)
 
-beta vs avg time to peak (see if it matches a curve)
-
 think about how to quantify quarantine vs travel ban, surface plot of travel ban vs quarantine days
 think about how the sin_beta function works, how does first case occurrence affect spread
+
+r0 is basic reproduction number, based on params there is threshold of when I` = 0 (takes off or dies out)
+beta / gamma, consider
+write about r0, that we only consider when r0 is greater than 1
+introduce why disease modelling is important
+copy and paste julie's sir diff eq proof
+make note of what simulations are most interesting
 """
