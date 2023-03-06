@@ -61,7 +61,7 @@ def beta_ttp(trials=10):
 
     betas, ttpfargo, ttpchicago, ttpcolumbus, ttpwichita = [], [], [], [], []
 
-    for i in tqdm(np.linspace(0.2, 1, 20), 'Betas'):
+    for i in tqdm(np.linspace(0.1, 1, 20), 'Betas'):
         v.dvars['beta'] = i
         betas.append(i)
 
@@ -81,6 +81,7 @@ def beta_ttp(trials=10):
     plt.title(f'Beta Values vs Time to Peak for {v.get_start_nodes()[0]}')
     plt.legend()
     plt.show()
+    plt.savefig('betas vs ttp chicago start.png')
 
 def test_multiple_policies(trials=10):
     v = VarGetter()
