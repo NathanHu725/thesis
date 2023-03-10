@@ -21,6 +21,12 @@ class VarGetter:
     def get_distances(self):
         return self.distances_extended
 
+    def get_cities_small(self):
+        return self.cities_small
+
+    def get_distances_small(self):
+        return self.distances_small
+
     def constant_threshold(self, infected, total_pop):
         threshold_pop = 400000
         tested_positive = self.num_to_test_positive(infected)
@@ -133,7 +139,7 @@ class VarGetter:
 
         self.time_vars = {
             'time_step': 2,
-            'total_time': 200
+            'total_time': 400
         }
 
         self.testing_vars = {
@@ -145,12 +151,12 @@ class VarGetter:
             'A': 0.05,
             'gamma': 2.2,
             'connection': GravityConnection,
-            'connection_type': 'Gravity'
+            'connection_type': 'Radiation'
         }
 
         self.travel_vars_rad = {
             'commuter_proportion': .0000288 * 4,
-            'adjacency_matrix': self.get_distances(),
+            'adjacency_matrix': self.get_distances_small(),
             'connection': RadiationConnection,
             'connection_type': 'Radication'
         }

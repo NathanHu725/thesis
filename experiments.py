@@ -14,6 +14,17 @@ from collections import defaultdict
 
 from scipy import signal, fft
 
+def stochastic_distribution_test(trials = 1000):
+    # Spoiler its just the binomial distribution
+    total_num = 200
+    prob_of_event = 0.1
+    boxes = np.zeros(total_num)
+    for _ in range(trials):
+        boxes[np.random.binomial(total_num, prob_of_event)] += 1
+
+    plt.plot(np.arange(total_num), boxes)
+    plt.show()
+
 def quarantine_v_travel_ban(trials=10, city_to_analyze='Chicago'):
     v=VarGetter()
 
@@ -46,13 +57,14 @@ def quarantine_v_travel_ban(trials=10, city_to_analyze='Chicago'):
     sns.heatmap(idxdf, ax=ax[0])
     ax[0].set_ylabel('Quarantine Days')
     ax[0].set_xlabel('Travel Ban Threhold (Fraction of Population)')
-    ax[0].set_title('Quarantine vs Travel Ban (Time to Peak)')
+    ax[0].set_title('Time to Peak')
 
     sns.heatmap(maxdf, ax=ax[1])
     ax[1].set_ylabel('Quarantine Days')
     ax[1].set_xlabel('Travel Ban Threhold (Fraction of Population)')
-    ax[1].set_title('Quarantine vs Travel Ban (Max Infected)')
+    ax[1].set_title('Max Infected')
 
+    plt.title('Quarantine vs Travel Ban')
     plt.show()
     plt.savefig('Ban vs Quarantine2.png')
     
@@ -348,6 +360,29 @@ def test_network():
     
     plt.show()
 
+def test_four_nodes(trials = 10):
+    v = VarGetter()
+
+    net = DiseaseNetwork(v.get_cities_small(), v.get_distances_small(), SEIRSNode, v.get_dvars(), v.get_time_vars(), v.get_travel_vars())
+
+    tracker, _, time_tracker, _ = net.simulate()
+    cities = np.array(v.get_cities_small())[:, 0]
+
+    for city, number in zip(cities, range(1, len(cities) + 1)):
+        populations = np.array(tracker[city])
+        plt.subplot(1,len(cities),number)
+        _ = plt.plot(time_tracker, populations[:,0], 'r')
+        _ = plt.plot(time_tracker, populations[:,1], 'y')
+        _ = plt.plot(time_tracker, populations[:,2], 'b')
+        _ = plt.plot(time_tracker, populations[:,3], 'g')
+        _ = plt.plot(time_tracker, populations[:,4], 'g--')
+        plt.xlabel('Time')
+        plt.ylabel('Disease Populations')
+        plt.title(city)
+        plt.legend(['S Population', 'E Population', 'I Population', 'R Population', 'Total Population'], loc='upper right')
+        
+    plt.show()
+
 def test_single_node(trials = 100):
     v = VarGetter()
     delta_t = v.get_time_vars()['time_step']
@@ -421,8 +456,6 @@ Distance from Chicago vs max_I, total_I
 
 Think about asymptotic behavior of the model, can we change it (super powerful)
 
-look at dS over dI
-
 Play around to see rough observations, start making some observations, how can we compare things
 - Three indicator cities
 - Travel ban cities
@@ -432,20 +465,24 @@ Play around to see rough observations, start making some observations, how can w
     - Thresholding
     - Immunity loss
     - Testing Variables
-- Line of best fit with confidence interval (logarithmic or polynomial (order 2 or 3))
-
-*Overlay the dots for each of the runs, make different colors for each run
-Play with initial conditions (start city)
-Change immunity loss and infectious period
-quarantine, travel ban (is one more effective)
 
 think about how to quantify quarantine vs travel ban, surface plot of travel ban vs quarantine days
 think about how the sin_beta function works, how does first case occurrence affect spread
 
-r0 is basic reproduction number, based on params there is threshold of when I` = 0 (takes off or dies out)
-beta / gamma, consider
-write about r0, that we only consider when r0 is greater than 1
-introduce why disease modelling is important
-copy and paste julie's sir diff eq proof
 make note of what simulations are most interesting
+
+update stochastic equations to discrete form, say S_{t + 1} - S_t
+introduce why disease modelling is important
+introduce graph setup, say where everything comes from, why decisions are made
+- this is just an example of how the model can be used, can be extracted to other nodes
+
+confirm radiation is working
+
+maybe:
+- try modelling nodes with different travel variables, different quarantine bans
+- random number that can be associated with compliance for each city
+- subtract random number of days from the quarantine, also for threshold
+
+randomize travel
+ask is difference equation in this scenartio essentially just eulers method?
 """
