@@ -12,5 +12,5 @@ if __name__ == "__main__":
     # test_multiple_policies(3)
     # beta_ttp(1)
     # test_four_nodes(1)
-    quarantine_v_travel_ban(3)
+    quarantine_v_travel_ban(1)
     # stochastic_distribution_test(10000)

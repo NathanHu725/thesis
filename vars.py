@@ -13,7 +13,7 @@ class VarGetter:
         return self.time_vars
 
     def get_travel_vars(self):
-        return self.travel_vars_grav
+        return self.travel_vars_rad
 
     def get_cities(self):
         return self.cities_extended
@@ -123,17 +123,17 @@ class VarGetter:
         ]
 
         self.dvars = {
-            'beta': 2/3, 
+            'beta': 2/5, 
             'beta_fun': self.sin_beta,
             'birth_rate': 1 / (55 * 365),
             'natural_death_rate': 1 / (75 * 365),
             'disease_death_rate': .001,
             'incubation_rate': 1/3,
-            'recovery_rate': 1/14,
+            'recovery_rate': 1/10,
             'lost_immunity_rate': 1/(365),
             'threshold_function': self.percent_threshold,
             'testing_function': self.num_to_test_positive,
-            'quarantine_days': 5,
+            'quarantine_days': 0,
             'all_quarantine': False
         }
 
@@ -156,7 +156,7 @@ class VarGetter:
 
         self.travel_vars_rad = {
             'commuter_proportion': .0000288 * 4,
-            'adjacency_matrix': self.get_distances_small(),
+            'adjacency_matrix': self.get_distances(),
             'connection': RadiationConnection,
             'connection_type': 'Radication'
         }
