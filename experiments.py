@@ -98,29 +98,29 @@ def beta_ttp(trials=10):
 def test_multiple_policies(trials=10):
     v = VarGetter()
     
-    v.dvars['recovery_rate'] = 1/7
+    v.spike = 0
     a, b, c, d, x, y = test_time_of_max_i(trials, False, v)
     plt.scatter(x, y, color='lightgreen')
-    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color='green', label='1/7')
+    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color='green', label='0')
 
-    v.dvars['recovery_rate'] = 1/10
+    v.spike = .25
     a, b, c, d, x, y = test_time_of_max_i(trials, False, v)
     plt.scatter(x, y, color='lightblue')
-    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color='blue', label='1/10')
+    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color='blue', label='.25')
 
-    v.dvars['recovery_rate'] = 1/21
+    v.spike = .5
     a, b, c, d, x, y = test_time_of_max_i(trials, False, v)
     plt.scatter(x, y, color='lightgrey')
-    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color='grey', label='1/21')
+    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color='grey', label='.5')
 
-    v.dvars['recovery_rate'] = 1/14
+    v.spike = .75
     a, b, c, d, x, y = test_time_of_max_i(trials, False, v)
     plt.scatter(x, y, color='mistyrose')
-    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color='red', label='1/14')
+    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color='red', label='.75')
     plt.legend()
     plt.xlabel(f"Distances from {v.get_start_nodes()[0]} (Miles)")
     plt.ylabel('Time (Days)')
-    plt.title(f"Comparing Max I with Different Recovery Rates with {v.threshold} and {v.dvars['quarantine_days']}")
+    plt.title(f"Comparing Max I with Different Spikes with {v.threshold} and {v.dvars['quarantine_days']}")
     plt.show()
 
 def get_avg_data(trials, v):
@@ -133,7 +133,10 @@ def get_avg_data(trials, v):
                 tracker, _, time_tracker, _ = net.simulate()
                 good = True
             except KeyboardInterrupt as ki:
+<<<<<<< HEAD
                 print("Exiting")
+=======
+>>>>>>> 16712daa77d17d2f59aa1946472c593e26e77507
                 exit()
             except:
                 print("Invalid Run")
@@ -344,23 +347,27 @@ def test_i_over_time(trials=10):
     plt.setp(ax[1].get_xticklabels(), rotation=30, horizontalalignment='right', fontsize='x-small')
     plt.show()
 
-def test_network(): 
-    net = DiseaseNetwork(get_cities(), get_distances(), SEIRSNode, get_dvars(), get_time_vars(), get_travel_vars())
-    tracker, _, time_tracker, peak_I_tracker = net.simulate()
+def test_network(trials=10): 
+    v = VarGetter()
+
+    net = DiseaseNetwork(v.get_cities(), v.get_distances(), SEIRSNode, v.get_dvars(), v.get_time_vars(), v.get_travel_vars())
+
+    tracker, _, time_tracker, _ = net.simulate()
     cities = ['Chicago', 'Milwaukee', 'Rockford', 'Gary', 'St. Louis', 'Columbus', 'Independence', 'Olathe']
+
     for city, number in zip(cities, range(1, len(cities) + 1)):
         populations = np.array(tracker[city])
-        plt.subplot(2,4,number)
-        S = plt.plot(time_tracker, populations[:,0], 'r')
-        E = plt.plot(time_tracker, populations[:,1], 'y')
-        I = plt.plot(time_tracker, populations[:,2], 'b')
-        R = plt.plot(time_tracker, populations[:,3], 'g')
-        cS = plt.plot(time_tracker, populations[:,4], 'g--')
+        plt.subplot(1,len(cities),number)
+        _ = plt.plot(time_tracker, populations[:,0], 'r')
+        _ = plt.plot(time_tracker, populations[:,1], 'y')
+        _ = plt.plot(time_tracker, populations[:,2], 'b')
+        _ = plt.plot(time_tracker, populations[:,3], 'g')
+        _ = plt.plot(time_tracker, populations[:,4], 'g--')
         plt.xlabel('Time')
         plt.ylabel('Disease Populations')
         plt.title(city)
         plt.legend(['S Population', 'E Population', 'I Population', 'R Population', 'Total Population'], loc='upper right')
-    
+        
     plt.show()
 
 def test_four_nodes(trials = 10):
@@ -486,6 +493,6 @@ maybe:
 - random number that can be associated with compliance for each city
 - subtract random number of days from the quarantine, also for threshold
 
-randomize travel
+do I need to prove random binomial is just a binomial?
 ask is difference equation in this scenartio essentially just eulers method?
 """

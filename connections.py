@@ -32,7 +32,7 @@ class RadiationConnection(Connection):
             if node_distance < distance and node_distance > 0:
                 self.included_nodes.append(node)
 
-        self.T_i = travel_vars['commuter_proportion'] #* ((np.log(2500000 / nodes[name].get_population())) + 1) * 15 * (len(self.included_nodes)) / len(nodes.values())
+        self.T_i = travel_vars['commuter_proportion'] #* ((np.log(3000000 / nodes[name].get_population())) + 1) #* 3 * (len(self.included_nodes)) / len(nodes.values())
         # * 3 * len(self.included_nodes) / len(nodes.values())
         # ((np.log(2500000 / nodes[name].get_population()) / np.log(3)) + .2) *
 
