@@ -75,7 +75,7 @@ class SEIRSNode(DiseaseNode):
         for connection in self.connections:
             travel_amount = connection.get_travel(self.threshold_func, self.I, self.get_population())
             travel_frac = travel_amount / self.get_population()
-            S_change = binomial(self.S, travel_frac)
+            S_change = binomial(max(self.S, 0), travel_frac)
             E_change = binomial(max(self.E, 0), travel_frac)
             I_change = binomial(max(self.I, 0), travel_frac)
             R_change = binomial(max(self.R, 0), travel_frac)

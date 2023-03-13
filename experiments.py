@@ -132,6 +132,9 @@ def get_avg_data(trials, v):
                 net = DiseaseNetwork(v.get_cities(), v.get_distances(), SEIRSNode, v.get_dvars(), v.get_time_vars(), v.get_travel_vars())
                 tracker, _, time_tracker, _ = net.simulate()
                 good = True
+            except KeyboardInterrupt as ki:
+                print("Exiting")
+                exit()
             except:
                 print("Invalid Run")
 
