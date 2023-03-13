@@ -14,6 +14,17 @@ from collections import defaultdict
 
 from scipy import signal, fft
 
+def stochastic_distribution_test(trials = 1000):
+    # Spoiler its just the binomial distribution
+    total_num = 200
+    prob_of_event = 0.1
+    boxes = np.zeros(total_num)
+    for _ in range(trials):
+        boxes[np.random.binomial(total_num, prob_of_event)] += 1
+
+    plt.plot(np.arange(total_num), boxes)
+    plt.show()
+
 def quarantine_v_travel_ban(trials=10, city_to_analyze='Chicago'):
     v=VarGetter()
 
@@ -46,13 +57,14 @@ def quarantine_v_travel_ban(trials=10, city_to_analyze='Chicago'):
     sns.heatmap(idxdf, ax=ax[0])
     ax[0].set_ylabel('Quarantine Days')
     ax[0].set_xlabel('Travel Ban Threhold (Fraction of Population)')
-    ax[0].set_title('Quarantine vs Travel Ban (Time to Peak)')
+    ax[0].set_title('Time to Peak')
 
     sns.heatmap(maxdf, ax=ax[1])
     ax[1].set_ylabel('Quarantine Days')
     ax[1].set_xlabel('Travel Ban Threhold (Fraction of Population)')
-    ax[1].set_title('Quarantine vs Travel Ban (Max Infected)')
+    ax[1].set_title('Max Infected')
 
+    plt.title('Quarantine vs Travel Ban')
     plt.show()
     plt.savefig('Ban vs Quarantine2.png')
     
@@ -61,7 +73,7 @@ def beta_ttp(trials=10):
 
     betas, ttpfargo, ttpchicago, ttpcolumbus, ttpwichita = [], [], [], [], []
 
-    for i in tqdm(np.linspace(0.2, 1, 20), 'Betas'):
+    for i in tqdm(np.linspace(0.1, 1, 20), 'Betas'):
         v.dvars['beta'] = i
         betas.append(i)
 
@@ -81,33 +93,34 @@ def beta_ttp(trials=10):
     plt.title(f'Beta Values vs Time to Peak for {v.get_start_nodes()[0]}')
     plt.legend()
     plt.show()
+    plt.savefig('betas vs ttp chicago start.png')
 
 def test_multiple_policies(trials=10):
     v = VarGetter()
     
-    v.dvars['recovery_rate'] = 1/7
+    v.spike = 0
     a, b, c, d, x, y = test_time_of_max_i(trials, False, v)
     plt.scatter(x, y, color='lightgreen')
-    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color='green', label='1/7')
+    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color='green', label='0')
 
-    v.dvars['recovery_rate'] = 1/10
+    v.spike = .25
     a, b, c, d, x, y = test_time_of_max_i(trials, False, v)
     plt.scatter(x, y, color='lightblue')
-    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color='blue', label='1/10')
+    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color='blue', label='.25')
 
-    v.dvars['recovery_rate'] = 1/21
+    v.spike = .5
     a, b, c, d, x, y = test_time_of_max_i(trials, False, v)
     plt.scatter(x, y, color='lightgrey')
-    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color='grey', label='1/21')
+    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color='grey', label='.5')
 
-    v.dvars['recovery_rate'] = 1/14
+    v.spike = .75
     a, b, c, d, x, y = test_time_of_max_i(trials, False, v)
     plt.scatter(x, y, color='mistyrose')
-    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color='red', label='1/14')
+    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color='red', label='.75')
     plt.legend()
     plt.xlabel(f"Distances from {v.get_start_nodes()[0]} (Miles)")
     plt.ylabel('Time (Days)')
-    plt.title(f"Comparing Max I with Different Recovery Rates with {v.threshold} and {v.dvars['quarantine_days']}")
+    plt.title(f"Comparing Max I with Different Spikes with {v.threshold} and {v.dvars['quarantine_days']}")
     plt.show()
 
 def get_avg_data(trials, v):
@@ -119,6 +132,12 @@ def get_avg_data(trials, v):
                 net = DiseaseNetwork(v.get_cities(), v.get_distances(), SEIRSNode, v.get_dvars(), v.get_time_vars(), v.get_travel_vars())
                 tracker, _, time_tracker, _ = net.simulate()
                 good = True
+            except KeyboardInterrupt as ki:
+<<<<<<< HEAD
+                print("Exiting")
+=======
+>>>>>>> 16712daa77d17d2f59aa1946472c593e26e77507
+                exit()
             except:
                 print("Invalid Run")
 
@@ -328,23 +347,50 @@ def test_i_over_time(trials=10):
     plt.setp(ax[1].get_xticklabels(), rotation=30, horizontalalignment='right', fontsize='x-small')
     plt.show()
 
-def test_network(): 
-    net = DiseaseNetwork(get_cities(), get_distances(), SEIRSNode, get_dvars(), get_time_vars(), get_travel_vars())
-    tracker, _, time_tracker, peak_I_tracker = net.simulate()
+def test_network(trials=10): 
+    v = VarGetter()
+
+    net = DiseaseNetwork(v.get_cities(), v.get_distances(), SEIRSNode, v.get_dvars(), v.get_time_vars(), v.get_travel_vars())
+
+    tracker, _, time_tracker, _ = net.simulate()
     cities = ['Chicago', 'Milwaukee', 'Rockford', 'Gary', 'St. Louis', 'Columbus', 'Independence', 'Olathe']
+
     for city, number in zip(cities, range(1, len(cities) + 1)):
         populations = np.array(tracker[city])
-        plt.subplot(2,4,number)
-        S = plt.plot(time_tracker, populations[:,0], 'r')
-        E = plt.plot(time_tracker, populations[:,1], 'y')
-        I = plt.plot(time_tracker, populations[:,2], 'b')
-        R = plt.plot(time_tracker, populations[:,3], 'g')
-        cS = plt.plot(time_tracker, populations[:,4], 'g--')
+        plt.subplot(1,len(cities),number)
+        _ = plt.plot(time_tracker, populations[:,0], 'r')
+        _ = plt.plot(time_tracker, populations[:,1], 'y')
+        _ = plt.plot(time_tracker, populations[:,2], 'b')
+        _ = plt.plot(time_tracker, populations[:,3], 'g')
+        _ = plt.plot(time_tracker, populations[:,4], 'g--')
         plt.xlabel('Time')
         plt.ylabel('Disease Populations')
         plt.title(city)
         plt.legend(['S Population', 'E Population', 'I Population', 'R Population', 'Total Population'], loc='upper right')
-    
+        
+    plt.show()
+
+def test_four_nodes(trials = 10):
+    v = VarGetter()
+
+    net = DiseaseNetwork(v.get_cities_small(), v.get_distances_small(), SEIRSNode, v.get_dvars(), v.get_time_vars(), v.get_travel_vars())
+
+    tracker, _, time_tracker, _ = net.simulate()
+    cities = np.array(v.get_cities_small())[:, 0]
+
+    for city, number in zip(cities, range(1, len(cities) + 1)):
+        populations = np.array(tracker[city])
+        plt.subplot(1,len(cities),number)
+        _ = plt.plot(time_tracker, populations[:,0], 'r')
+        _ = plt.plot(time_tracker, populations[:,1], 'y')
+        _ = plt.plot(time_tracker, populations[:,2], 'b')
+        _ = plt.plot(time_tracker, populations[:,3], 'g')
+        _ = plt.plot(time_tracker, populations[:,4], 'g--')
+        plt.xlabel('Time')
+        plt.ylabel('Disease Populations')
+        plt.title(city)
+        plt.legend(['S Population', 'E Population', 'I Population', 'R Population', 'Total Population'], loc='upper right')
+        
     plt.show()
 
 def test_single_node(trials = 100):
@@ -420,8 +466,6 @@ Distance from Chicago vs max_I, total_I
 
 Think about asymptotic behavior of the model, can we change it (super powerful)
 
-look at dS over dI
-
 Play around to see rough observations, start making some observations, how can we compare things
 - Three indicator cities
 - Travel ban cities
@@ -431,20 +475,24 @@ Play around to see rough observations, start making some observations, how can w
     - Thresholding
     - Immunity loss
     - Testing Variables
-- Line of best fit with confidence interval (logarithmic or polynomial (order 2 or 3))
-
-*Overlay the dots for each of the runs, make different colors for each run
-Play with initial conditions (start city)
-Change immunity loss and infectious period
-quarantine, travel ban (is one more effective)
 
 think about how to quantify quarantine vs travel ban, surface plot of travel ban vs quarantine days
 think about how the sin_beta function works, how does first case occurrence affect spread
 
-r0 is basic reproduction number, based on params there is threshold of when I` = 0 (takes off or dies out)
-beta / gamma, consider
-write about r0, that we only consider when r0 is greater than 1
-introduce why disease modelling is important
-copy and paste julie's sir diff eq proof
 make note of what simulations are most interesting
+
+update stochastic equations to discrete form, say S_{t + 1} - S_t
+introduce why disease modelling is important
+introduce graph setup, say where everything comes from, why decisions are made
+- this is just an example of how the model can be used, can be extracted to other nodes
+
+confirm radiation is working
+
+maybe:
+- try modelling nodes with different travel variables, different quarantine bans
+- random number that can be associated with compliance for each city
+- subtract random number of days from the quarantine, also for threshold
+
+do I need to prove random binomial is just a binomial?
+ask is difference equation in this scenartio essentially just eulers method?
 """
