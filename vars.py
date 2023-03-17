@@ -50,7 +50,7 @@ class VarGetter:
     def __init__(self):
         self.threshold = 1
         self.start_nodes = ['Chicago']
-        self.spike = .75
+        self.spike = 0
 
         self.cities_extended = [('Milwaukee', 570000), ('Rockford', 147000), ('Gary', 70000), ('Chicago', 2670000), ('Minneapolis', 425000), ('St. Paul', 307000), ('Madison', 270000), ('Indianapolis', 882000), ('Fort Wayne', 265974), ('Des Moines', 212031), ('Aurora', 179266), ('Grand Rapids', 197416), ('Overland Park', 197106), ('Akron', 189347), ('Sioux Falls', 196528), ('Springfield MO', 169724), ('Kansas City MO', 508394), ('Joliet', 150371), ('Naperville', 149104), ('Dayton', 137571), ('Warren', 138130), ('Olathe', 143014), ('Sterling Heights', 131996), ('Cedar Rapids', 130330), ('Topeka', 127139), ('Fargo', 125804), ('Rochester', 124599), ('Evansville', 119806), ('Ann Arbor', 119303), ('Columbia', 118620), ('Independence', 117369), ('Springfield IL', 116313), ('Peoria', 115424), ('Lansing', 115222), ('Elgin', 112628), ('Green Bay', 104796), ('Toledo', 268508), ('Lincoln', 293000), ('St. Louis', 301000), ('Columbus', 905000), ('Detroit', 639000), ('Kansas City KS', 477000), ('Omaha', 463000), ('Wichita', 397000), ('Cleveland', 373000), ('Cincinnati', 309000)]
         self.cities = [('Milwaukee', 570000), ('Rockford', 147000), ('Gary', 70000), ('Chicago', 2670000), ('Minneapolis', 425000), ('St. Paul', 307000), ('Madison', 270000), ('Indianapolis', 882000)]
@@ -129,7 +129,7 @@ class VarGetter:
             'natural_death_rate': 1 / (75 * 365),
             'disease_death_rate': .001,
             'incubation_rate': 1/3,
-            'recovery_rate': 1/10,
+            'recovery_rate': 1/14,
             'lost_immunity_rate': 1/(365),
             'threshold_function': self.percent_threshold,
             'testing_function': self.num_to_test_positive,
@@ -139,7 +139,7 @@ class VarGetter:
 
         self.time_vars = {
             'time_step': 2,
-            'total_time': 200
+            'total_time': 500
         }
 
         self.testing_vars = {
