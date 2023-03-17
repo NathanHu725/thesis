@@ -1,4 +1,4 @@
-from experiments import stochastic_distribution_test, test_single_node, test_four_nodes, test_network, test_i_over_time, test_total_i_over_time, test_i_over_time_wavelets, test_time_of_max_i, test_multiple_policies, beta_ttp, quarantine_v_travel_ban
+from experiments import stochastic_distribution_test, stochastic_distribution_test, test_single_node, test_four_nodes, test_four_nodes, test_network, test_i_over_time, test_total_i_over_time, test_i_over_time_wavelets, test_time_of_max_i, test_multiple_policies, beta_ttp, quarantine_v_travel_ban
 from vars import VarGetter
 import matplotlib.pyplot as plt
 
@@ -9,8 +9,6 @@ if __name__ == "__main__":
     # test_total_i_over_time(1)
     # test_i_over_time_wavelets(1)
     # test_time_of_max_i(1)
-    # test_multiple_policies(5)
-    # beta_ttp(3)
-    # test_four_nodes(1)
-    quarantine_v_travel_ban(1)
-    # stochastic_distribution_test(10000)
+    # test_multiple_policies(3)
+    # beta_ttp(1)
+    quarantine_v_travel_ban(3)

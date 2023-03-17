@@ -98,31 +98,30 @@ def beta_ttp(trials=10):
 def test_multiple_policies(trials=10):
     v = VarGetter()
     
-    v.dvars['beta'] = 2/4
+    v.dvars['recovery_rate'] = 1/7
     a, b, c, d, x, y = test_time_of_max_i(trials, False, v)
     plt.scatter(x, y, color='lightgreen')
-    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color='green', label='2/4')
+    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color='green', label='1/7')
 
-    v.dvars['beta'] = 2/5
+    v.dvars['recovery_rate'] = 1/10
     a, b, c, d, x, y = test_time_of_max_i(trials, False, v)
     plt.scatter(x, y, color='lightblue')
-    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color='blue', label='2/5')
+    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color='blue', label='1/10')
 
-    v.dvars['beta'] = 2/6
+    v.dvars['recovery_rate'] = 1/21
     a, b, c, d, x, y = test_time_of_max_i(trials, False, v)
     plt.scatter(x, y, color='lightgrey')
-    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color='grey', label='2/6')
+    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color='grey', label='1/21')
 
-    v.dvars['beta'] = 2/7
+    v.dvars['recovery_rate'] = 1/14
     a, b, c, d, x, y = test_time_of_max_i(trials, False, v)
     plt.scatter(x, y, color='mistyrose')
-    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color='red', label='2/7')
+    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color='red', label='1/14')
     plt.legend()
     plt.ylim(0, 300)
     plt.xlabel(f"Distances from {v.get_start_nodes()[0]} (Miles)")
     plt.ylabel('Time (Days)')
-    plt.title(f"Comparing Max I for Diff Betas Recovery Rate with {v.threshold} and {v.dvars['quarantine_days']}")
-    # plt.title(f"Comparing Quarantines and {v.threshold} Threshold")
+    plt.title(f"Comparing Max I with Different Recovery Rates with {v.threshold} and {v.dvars['quarantine_days']}")
     plt.show()
 
 def get_avg_data(trials, v):
@@ -135,6 +134,7 @@ def get_avg_data(trials, v):
                 tracker, _, time_tracker, _ = net.simulate()
                 good = True
             except KeyboardInterrupt as ki:
+                print("Exiting")
                 exit()
             except:
                 print("Invalid Run")
@@ -371,7 +371,7 @@ def test_network(trials=10):
 def test_four_nodes(trials = 10):
     v = VarGetter()
 
-    net = DiseaseNetwork(v.get_cities(), v.get_distances(), SEIRSNode, v.get_dvars(), v.get_time_vars(), v.get_travel_vars())
+    net = DiseaseNetwork(v.get_cities_small(), v.get_distances_small(), SEIRSNode, v.get_dvars(), v.get_time_vars(), v.get_travel_vars())
 
     tracker, _, time_tracker, _ = net.simulate()
     cities = np.array(v.get_cities_small())[:, 0]
@@ -479,17 +479,18 @@ think about how the sin_beta function works, how does first case occurrence affe
 
 make note of what simulations are most interesting
 
+update stochastic equations to discrete form, say S_{t + 1} - S_t
+introduce why disease modelling is important
+introduce graph setup, say where everything comes from, why decisions are made
+- this is just an example of how the model can be used, can be extracted to other nodes
+
+confirm radiation is working
+
 maybe:
 - try modelling nodes with different travel variables, different quarantine bans
 - random number that can be associated with compliance for each city
 - subtract random number of days from the quarantine, also for threshold
 
-cdc reports for case references, also who?
-
-best figures 
-- quarantine v travel ban for gravity
-- change in spike (with and without restriction, square of possible restrictions)
-
-super additive, subadditive, additive
-total cases proportional to the control (cumulative divided by quarantine days)
+do I need to prove random binomial is just a binomial?
+ask is difference equation in this scenartio essentially just eulers method?
 """
