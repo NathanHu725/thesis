@@ -7,7 +7,7 @@ if __name__ == "__main__":
     # test_network()
     # test_i_over_time(1)
     # test_total_i_over_time(1)
-    # test_i_over_time_wavelets(1)
+    # test_i_over_time_wavelets(5)
     # test_time_of_max_i(1)
     # test_multiple_policies(3)
     # beta_ttp(1)

@@ -139,7 +139,7 @@ class VarGetter:
 
         self.time_vars = {
             'time_step': 2,
-            'total_time': 500
+            'total_time': 1000
         }
 
         self.testing_vars = {

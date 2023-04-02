@@ -66,7 +66,7 @@ def quarantine_v_travel_ban(trials=10, city_to_analyze='Chicago'):
 
     plt.title('Quarantine vs Travel Ban')
     plt.show()
-    plt.savefig('Ban vs Quarantine2.png')
+    plt.savefig('Ban vs Quarantine.png')
     
 def beta_ttp(trials=10):
     v = VarGetter()
@@ -228,25 +228,29 @@ def test_i_over_time_wavelets(trials=10, v=VarGetter()):
     WIDTH = 1
     SIGNAL = signal.morlet2
 
-    _, ax = plt.subplots(1, 3)
+    # _, ax = plt.subplots(1, 3)
     for i in avg_I_data.index:
         color = 'lightgray'
         cwtmatr = signal.cwt(avg_I_data.loc[i], SIGNAL, widths)
-        ax[2].plot(time_tracker, abs(cwtmatr[WIDTH - 1]), color)
+        # ax[2].plot(time_tracker, abs(cwtmatr[WIDTH - 1]), color)
+        plt.plot(time_tracker, abs(cwtmatr[WIDTH - 1]), color)
 
     for i in avg_I_data.index:
         if i == 'Fargo':
             color = 'r'
             cwtmatr = signal.cwt(avg_I_data.loc[i], SIGNAL, widths)
-            ax[2].plot(time_tracker, abs(cwtmatr[WIDTH - 1]), color)
+            # ax[2].plot(time_tracker, abs(cwtmatr[WIDTH - 1]), color)
+            plt.plot(time_tracker, abs(cwtmatr[WIDTH - 1]), color, label='Fargo')
         elif i == 'Columbus':
             color = 'g'
             cwtmatr = signal.cwt(avg_I_data.loc[i], SIGNAL, widths)
-            ax[2].plot(time_tracker, abs(cwtmatr[WIDTH - 1]), color)
+            # ax[2].plot(time_tracker, abs(cwtmatr[WIDTH - 1]), color)
+            plt.plot(time_tracker, abs(cwtmatr[WIDTH - 1]), color, label='Columbus')
         elif i == 'Chicago':
             color = 'b'
             cwtmatr = signal.cwt(avg_I_data.loc[i], SIGNAL, widths)
-            ax[2].plot(time_tracker, abs(cwtmatr[WIDTH - 1]), color)
+            # ax[2].plot(time_tracker, abs(cwtmatr[WIDTH - 1]), color)
+            plt.plot(time_tracker, abs(cwtmatr[WIDTH - 1]), color, label='Chicago')
         else:
             pass
 
@@ -254,17 +258,21 @@ def test_i_over_time_wavelets(trials=10, v=VarGetter()):
     # for width in cwtmatr[1:]:
     #     ax[1].plot(time_tracker, width)
 
-    ax[1].plot(SIGNAL(M=100, s=WIDTH))
+    # ax[1].plot(SIGNAL(M=100, s=WIDTH))
 
     # ax[1].plot(time_tracker, cwtmatr[-1])
-    sns.heatmap(np.flipud(abs(cwtmatr)), ax=ax[0], xticklabels=int(len(time_tracker)/15))
+    # sns.heatmap(np.flipud(abs(cwtmatr)), ax=ax[0], xticklabels=int(len(time_tracker)/15))
     # sns.heatmap(fft.dct(avg_I_data.values)[:,:20], ax=ax[2], xticklabels=int(len(time_tracker)/15))
     # sns.heatmap(avg_I_data, ax=ax[1], xticklabels=int(len(time_tracker)/15))
-    ax[2].set_title(f"All wavelet transforms of width {WIDTH}")
+    # ax[2].set_title(f"All wavelet transforms of width {WIDTH}")
+    plt.title(f"Wavelet Transform of Infected Individuals With .75 Spike")
+    plt.ylabel("Incidence with Morlet")
+    plt.xlabel("Time in Days")
+    plt.legend()
     # ax[1].set_title(f"Infected Population Over Time For {avg_I_data.index[0]}")
     # ax[2].set_title(f"Visualization of Morlet2 for width {WIDTH}")
-    txt=f"Percent of population infected over time with y axis arranged by distance from {v.get_start_nodes()[0]}. The time period is {v.get_time_vars()['total_time']} days. The travel model used is {v.get_travel_vars()['connection_type']}."
-    plt.figtext(0.5, 0.01, txt, wrap=True, horizontalalignment='center', fontsize=12)
+    # txt=f"Percent of population infected over time with y axis arranged by distance from {v.get_start_nodes()[0]}. The time period is {v.get_time_vars()['total_time']} days. The travel model used is {v.get_travel_vars()['connection_type']}."
+    # plt.figtext(0.5, 0.01, txt, wrap=True, horizontalalignment='center', fontsize=12)
     plt.show()
 
 def test_total_i_over_time(trials=10):
