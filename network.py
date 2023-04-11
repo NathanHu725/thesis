@@ -40,7 +40,7 @@ class DiseaseNetwork:
     def simulate(self):
         curr_time = 0
         time_tracker = []
-        for i in tqdm(range(int(self.total_time / self.time_step)), desc="Simulation"):
+        for i in range(int(self.total_time / self.time_step)):
             # while curr_time < self.total_time:
             curr_time += self.time_step
             self.increment()

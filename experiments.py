@@ -62,11 +62,10 @@ def quarantine_v_travel_ban(trials=10, city_to_analyze='Chicago'):
     sns.heatmap(maxdf, ax=ax[1])
     ax[1].set_ylabel('Quarantine Days')
     ax[1].set_xlabel('Travel Ban Threhold (Fraction of Population)')
-    ax[1].set_title('Max Infected')
+    ax[1].set_title('Max Percent of Population Infected')
 
-    plt.title('Quarantine vs Travel Ban')
     plt.show()
-    plt.savefig('Ban vs Quarantine.png')
+    # plt.savefig('Ban vs Quarantine.png')
     
 def beta_ttp(trials=10):
     v = VarGetter()
@@ -95,33 +94,137 @@ def beta_ttp(trials=10):
     plt.show()
     plt.savefig('betas vs ttp chicago start.png')
 
-def test_multiple_policies(trials=10):
+def test_multiple_beta_values(trials=10):
     v = VarGetter()
     
-    v.dvars['recovery_rate'] = 1/7
-    a, b, c, d, x, y = test_time_of_max_i(trials, False, v)
-    plt.scatter(x, y, color='lightgreen')
-    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color='green', label='1/7')
+    # color_pairs = [('deeppink', 'lavenderblush'), ('blueviolet', 'lavender'), ('cyan', 'lightcyan'), ('chartreuse', 'honeydew'), ('grey', 'lightgrey'), ('red', 'lightcoral'), ('blue', 'lightblue'), ('green', 'lightgreen'), ('orange', 'navajowhite')]
+    color_pairs = [('red', 'lightcoral'), ('grey', 'lightgrey'), ('grey', 'lightgrey'), ('grey', 'lightgrey'), ('blue', 'lightblue'), ('grey', 'lightgrey'), ('grey', 'lightgrey'), ('grey', 'lightgrey'), ('green', 'lightgreen')]
+    beta_vals = np.around(np.linspace(.2, .5, 9), 2)
 
-    v.dvars['recovery_rate'] = 1/10
-    a, b, c, d, x, y = test_time_of_max_i(trials, False, v)
-    plt.scatter(x, y, color='lightblue')
-    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color='blue', label='1/10')
+    idxmax = []
+    maxvals = []
+    city_to_eval = 'Chicago'
 
-    v.dvars['recovery_rate'] = 1/21
-    a, b, c, d, x, y = test_time_of_max_i(trials, False, v)
-    plt.scatter(x, y, color='lightgrey')
-    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color='grey', label='1/21')
+    plt.subplot(1, 3, 1)
 
-    v.dvars['recovery_rate'] = 1/14
-    a, b, c, d, x, y = test_time_of_max_i(trials, False, v)
-    plt.scatter(x, y, color='mistyrose')
-    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color='red', label='1/14')
+    for colors, beta in zip(color_pairs, beta_vals):
+        dark, light = colors
+        v.dvars['beta'] = beta
+        a, b, c, d, x, y, z = test_time_of_max_i(trials, False, v)
+        plt.scatter(x, y, color=light)
+        plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color=dark, label=f'{beta}')
+
+        idxmax.append(y[city_to_eval])
+        maxvals.append(z[city_to_eval])
+
     plt.legend()
-    plt.ylim(0, 300)
     plt.xlabel(f"Distances from {v.get_start_nodes()[0]} (Miles)")
-    plt.ylabel('Time (Days)')
-    plt.title(f"Comparing Max I with Different Recovery Rates with {v.threshold} and {v.dvars['quarantine_days']}")
+    plt.ylabel('Time to Peak (Days)')
+    plt.title(f"Comparing Disease Spread with Different Betas")
+
+    plt.subplot(1, 3, 2)
+    plt.scatter(beta_vals, idxmax, color='blue')
+    plt.xlabel('Beta Value')
+    plt.ylabel('Time to Peak (Days)')
+    plt.title(f'Time to Peak vs Beta Value ({city_to_eval})')
+
+    plt.subplot(1, 3, 3)
+    plt.scatter(beta_vals, maxvals, color='blue')
+    plt.xlabel('Beta Value')
+    plt.ylabel('Max Percent of Population Infected')
+    plt.title(f'Max Percent of Population Infected vs Beta Value ({city_to_eval})')
+
+    plt.show()
+
+def test_multiple_policies(trials=10):
+    v = VarGetter()
+    line_vars = []
+    plt.subplot(1, 2, 1)
+    v.dvars['quarantine_days'] = 0
+    v.threshold = 1
+    v.beta = .4
+    a, b, c, d, x, y, _ = test_time_of_max_i(trials, False, v)
+    plt.scatter(x, y, color='lightgreen')
+    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color='green', label='No Restrictions')
+    line_vars.append((a, b, c, d))
+
+    v.dvars['quarantine_days'] = 0
+    v.threshold = .2
+    v.beta = .4
+    a, b, c, d, x, y, _ = test_time_of_max_i(trials, False, v)
+    plt.scatter(x, y, color='lightblue')
+    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color='blue', label='20% Travel Ban')
+    line_vars.append((a, b, c, d))
+
+    v.dvars['quarantine_days'] = 5
+    v.threshold = 1
+    v.beta = .4
+    a, b, c, d, x, y, _ = test_time_of_max_i(trials, False, v)
+    plt.scatter(x, y, color='lightgrey')
+    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color='grey', label='5 Day Quarantine')
+    line_vars.append((a, b, c, d))
+
+    v.dvars['quarantine_days'] = 0
+    v.threshold = 1
+    v.beta = .2
+    a, b, c, d, x, y, _ = test_time_of_max_i(trials, False, v)
+    plt.scatter(x, y, color='lavender')
+    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color='purple', label='.2 Beta')
+    line_vars.append((a, b, c, d))
+
+    v.dvars['quarantine_days'] = 5
+    v.threshold = .2
+    v.beta = .2
+    a, b, c, d, x, y, _ = test_time_of_max_i(trials, False, v)
+    plt.scatter(x, y, color='mistyrose')
+    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d, color='red', label='All Policies')
+    line_vars.append((a, b, c, d))
+
+    plt.legend(loc='upper left')
+    plt.xlabel(f"Distances from {v.get_start_nodes()[0]} (Miles)")
+    plt.ylabel('Time to Peak (Days)')
+    plt.title(f"Comparing Max I Different Combinations Threhold, Quarantine and Beta")
+
+    plt.subplot(1, 2, 2)
+    a, b, c, d = line_vars[0]
+    no_policy = a * pow(x, 3) + b * pow(x, 2) + c * x + d
+    a, b, c, d = line_vars[1]
+    thresh = a * pow(x, 3) + b * pow(x, 2) + c * x + d
+    a, b, c, d = line_vars[2]
+    quar = a * pow(x, 3) + b * pow(x, 2) + c * x + d
+    a, b, c, d = line_vars[3]
+    beta = a * pow(x, 3) + b * pow(x, 2) + c * x + d
+    a, b, c, d = line_vars[4]
+    plt.plot(x, (thresh - no_policy) + (quar - no_policy) + (beta - no_policy), color='green', label='Implemented Individually')
+    plt.plot(x, a * pow(x, 3) + b * pow(x, 2) + c * x + d - no_policy, color='blue', label='Implemented Together')
+    plt.legend(loc='upper left')
+    plt.xlabel(f"Distances from {v.get_start_nodes()[0]} (Miles)")
+    plt.ylabel('Time to Peak (Days)')
+    plt.title(f"Policies Implemented Individually versus Together")
+    plt.show()
+
+def test_multiple_policies_single_node(trials=10, city_to_analyze='Chicago'):
+    v = VarGetter()
+    
+    v.dvars['beta'] = .2
+    avg_I_data, time_tracker = get_avg_data(trials, v)
+    plt.plot(time_tracker, avg_I_data.loc[city_to_analyze], color='green', label='.2')
+
+    v.dvars['beta'] = .3
+    avg_I_data, time_tracker = get_avg_data(trials, v)
+    plt.plot(time_tracker, avg_I_data.loc[city_to_analyze], color='blue', label='.3')
+
+    v.dvars['beta'] = .4
+    avg_I_data, time_tracker = get_avg_data(trials, v)
+    plt.plot(time_tracker, avg_I_data.loc[city_to_analyze], color='purple', label='.4')
+
+    v.dvars['beta'] = .5
+    avg_I_data, time_tracker = get_avg_data(trials, v)
+    plt.plot(time_tracker, avg_I_data.loc[city_to_analyze], color='red', label='.5')
+    plt.legend()
+    plt.xlabel('Time (Days)')
+    plt.ylabel('Percent of Population Infected')
+    plt.title(f'Comparing Different Betas on a Single Node ({city_to_analyze})')
     plt.show()
 
 def get_avg_data(trials, v):
@@ -218,7 +321,7 @@ def test_time_of_max_i(trials=10, show=True, v=VarGetter()):
         plt.legend(loc='upper right')
         plt.show()
 
-    return (a, b, c, d, city_vals['Distances'], avg_I_data.idxmax(axis=1))
+    return (a, b, c, d, city_vals['Distances'], avg_I_data.idxmax(axis=1), avg_I_data.max(axis=1))
 
 def test_i_over_time_wavelets(trials=10, v=VarGetter()):
     avg_I_data, time_tracker = get_avg_data(trials, v)
@@ -499,6 +602,5 @@ maybe:
 - random number that can be associated with compliance for each city
 - subtract random number of days from the quarantine, also for threshold
 
-do I need to prove random binomial is just a binomial?
-ask is difference equation in this scenartio essentially just eulers method?
+run the diff betas in chicago with a spike value, longer t final
 """
