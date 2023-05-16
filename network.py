@@ -40,8 +40,7 @@ class DiseaseNetwork:
     def simulate(self):
         curr_time = 0
         time_tracker = []
-        for i in range(int(self.total_time / self.time_step)):
-            # while curr_time < self.total_time:
+        for _ in range(int(self.total_time / self.time_step)):
             curr_time += self.time_step
             self.increment()
             time_tracker.append(curr_time)
@@ -60,7 +59,6 @@ class DiseaseNetwork:
         for node in self.graph.values():
             node.apply_travel()
             self.population_tracker[node.name].append(node.get_state())
-            # self.total_pop_tracker[node.name].append(node.get_population())
 
 
     def get_population_tracker(self):

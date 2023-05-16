@@ -4,6 +4,7 @@ from numpy.random import binomial
 
 class SEIRSNode(DiseaseNode):
     def __init__(self, total_population, disease_vars, delta_t = 1, name = '', start_with_disease=False):
+        # Initialize class variables
         self.t = 0
         self.delta_t = delta_t
         self.S = total_population - 1000 if start_with_disease else total_population
@@ -16,6 +17,7 @@ class SEIRSNode(DiseaseNode):
 
         self.name = name
 
+        # Parse the disease variable dict
         try:
             self.beta = disease_vars['beta']
             self.beta_fun = disease_vars['beta_fun']
